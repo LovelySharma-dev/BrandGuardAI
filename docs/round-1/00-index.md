@@ -15,27 +15,37 @@
 | **Proposed target** | Metric or outcome we hope to achieve; not a measured result |
 | **Unresolved** | Open question the team must answer |
 
-## Documents in this package
+## Primary Round 1 submission set (use these for the PDF)
 
 | File | Purpose |
 | --- | --- |
-| [01-problem-and-evidence-plan.md](./01-problem-and-evidence-plan.md) | Problem definition and how evidence will be gathered |
-| [02-users-and-jtbd.md](./02-users-and-jtbd.md) | Users, jobs-to-be-done, pains, organisational context |
-| [03-value-proposition.md](./03-value-proposition.md) | Value prop, differentiators, naming critique |
-| [04-workflow.md](./04-workflow.md) | End-to-end user workflow |
-| [05-feature-scope.md](./05-feature-scope.md) | Prioritised scope and explicit exclusions |
-| [06-architecture.md](./06-architecture.md) | Architecture, stack rationale, trade-offs |
-| [07-data-model-and-integrations.md](./07-data-model-and-integrations.md) | Data model and integration plan |
-| [08-security-privacy-a11y-oversight.md](./08-security-privacy-a11y-oversight.md) | Security, privacy, accessibility, human oversight |
-| [09-milestones.md](./09-milestones.md) | Round 1–3 milestones and phased build plan |
-| [10-team-roles.md](./10-team-roles.md) | Role placeholders (do not invent names) |
-| [11-impact-and-evaluation.md](./11-impact-and-evaluation.md) | Expected impact and evaluation plan |
-| [12-limitations-and-roadmap.md](./12-limitations-and-roadmap.md) | Limitations and post-event roadmap |
-| [13-research-references.md](./13-research-references.md) | Research references with links and access dates |
-| [14-hardest-technical-challenge.md](./14-hardest-technical-challenge.md) | Judge-oriented hardest-challenge explanation |
-| [15-feasibility-critique-and-questions.md](./15-feasibility-critique-and-questions.md) | Critical feasibility review and team questions |
-| [16-pdf-submission-checklist.md](./16-pdf-submission-checklist.md) | Checklist for PDF + organiser form |
-| [submission-draft.md](./submission-draft.md) | Complete content for the required Round 1 PDF |
+| [problem-analysis.md](./problem-analysis.md) | Problem understanding, users, competitor honesty, evidence plan |
+| [solution-and-workflow.md](./solution-and-workflow.md) | Value prop, A+B+C critique, workflow, MVP, demo scenario |
+| [technical-plan.md](./technical-plan.md) | Stack, architecture, security, proposed evaluation metrics |
+| [three-round-roadmap.md](./three-round-roadmap.md) | Rounds 1–3, measurable improvements, risks, future scope |
+| [submission-draft.md](./submission-draft.md) | Polished PDF-ready document covering all 11 organiser sections |
+| [judging-self-review.md](./judging-self-review.md) | Criteria stress test, gaps, concrete improvements |
+
+## Supporting design notes (deeper detail)
+
+| File | Purpose |
+| --- | --- |
+| [01-problem-and-evidence-plan.md](./01-problem-and-evidence-plan.md) | Extended problem / evidence plan |
+| [02-users-and-jtbd.md](./02-users-and-jtbd.md) | Jobs-to-be-done detail |
+| [03-value-proposition.md](./03-value-proposition.md) | Differentiator / naming critique |
+| [04-workflow.md](./04-workflow.md) | Workflow detail |
+| [05-feature-scope.md](./05-feature-scope.md) | P0/P1/P2 scope |
+| [06-architecture.md](./06-architecture.md) | Architecture depth |
+| [07-data-model-and-integrations.md](./07-data-model-and-integrations.md) | Data model |
+| [08-security-privacy-a11y-oversight.md](./08-security-privacy-a11y-oversight.md) | Security / privacy / a11y |
+| [09-milestones.md](./09-milestones.md) | Phase acceptance criteria |
+| [10-team-roles.md](./10-team-roles.md) | Role placeholders |
+| [11-impact-and-evaluation.md](./11-impact-and-evaluation.md) | Impact / eval notes |
+| [12-limitations-and-roadmap.md](./12-limitations-and-roadmap.md) | Limitations |
+| [13-research-references.md](./13-research-references.md) | Verified references + dates |
+| [14-hardest-technical-challenge.md](./14-hardest-technical-challenge.md) | Hardest-challenge deep dive |
+| [15-feasibility-critique-and-questions.md](./15-feasibility-critique-and-questions.md) | Feasibility Qs |
+| [16-pdf-submission-checklist.md](./16-pdf-submission-checklist.md) | PDF + form checklist |
 
 ## Instruction files (repo root)
 
