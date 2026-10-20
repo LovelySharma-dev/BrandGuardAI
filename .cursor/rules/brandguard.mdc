@@ -1,0 +1,39 @@
+---
+description: BrandGuard AI project rules — evidence-gated brand governance
+globs:
+alwaysApply: true
+---
+
+# BrandGuard AI — Cursor Rules
+
+## Source of truth
+
+Read and follow **`AGENTS.md`** before recommending or implementing changes.  
+Design details live under **`docs/round-1/`**. Reusable workflows live in **`SKILLS.md`** (reference explicitly; not auto-loaded).
+
+## Phase discipline
+
+- Round 1 planning docs may be edited; **do not implement the functional product** until the permitted development window opens (unless the user explicitly authorises a narrow scaffolding task).
+- Implement **one phase at a time** (see `docs/round-1/09-milestones.md`). Avoid building the entire project in a single operation.
+- A phase is incomplete until acceptance criteria and tests pass.
+
+## Architecture invariants
+
+- Hybrid review: deterministic validators + retrieval + structured LLM outputs.
+- **Evidence gate:** citation IDs must be ⊆ the retrieval snapshot; fail closed.
+- Statuses: `verified` | `contradicted` | `unsupported` | `indeterminate` | `policy_hit` | `suggestion_only`. Absence of evidence ≠ false.
+- **Server-side authz** for roles and workflow transitions. UI checks are not authority.
+- Never set content to `approved` because an LLM recommended it.
+- No API secrets in client / `NEXT_PUBLIC_` for provider keys.
+- Add `pgvector` only if retrieval evaluation justifies it.
+
+## Engineering practice
+
+- Prefer focused diffs aligned to the requested phase.
+- Use Zod at trust boundaries (inputs, model outputs, transitions).
+- Add or update tests for evidence gate, permissions, and claim-status behaviour when touching those areas.
+- Do not invent metrics, user interviews, customers, or source citations.
+
+## Completion
+
+End substantive work with a short summary: files changed, tests, risks, next action.
