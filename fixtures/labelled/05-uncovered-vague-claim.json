@@ -1,0 +1,12 @@
+{
+  "title": "Vague claim not covered by the kit",
+  "body": "Hi team, our workspace feels more inspiring this spring.",
+  "intent": "Write a warm seasonal email about the product experience.",
+  "expected": [
+    {
+      "matchedText": "feels more inspiring",
+      "status": "indeterminate",
+      "citationIds": []
+    }
+  ]
+}

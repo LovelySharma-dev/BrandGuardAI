@@ -1,0 +1,12 @@
+{
+  "title": "Promotional superiority claim without a matching fact",
+  "body": "Hi team, Inkloom is the fastest platform on the market.",
+  "intent": "Promote the product in a customer email.",
+  "expected": [
+    {
+      "matchedText": "the fastest platform on the market",
+      "status": "unsupported",
+      "citationIds": []
+    }
+  ]
+}
