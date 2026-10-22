@@ -1,0 +1,15 @@
+{
+  "id": "email-clean-copy",
+  "title": "Clean customer email copy",
+  "body": "Hi Maya, thanks for exploring Inkloom. Reply to this email if you would like help getting started. Best, The Inkloom team",
+  "intent": {
+    "goal": "Send a helpful, low-pressure onboarding email.",
+    "audience": "New customers",
+    "channel": "Email",
+    "mustKeep": []
+  },
+  "kitVersion": "1.0.0",
+  "notes": "On-brand email with no banned terms, contradictions, or absolute claims.",
+  "expectNoBlockers": true,
+  "expected": []
+}
