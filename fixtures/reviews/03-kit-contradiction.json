@@ -1,0 +1,21 @@
+{
+  "id": "email-kit-contradiction",
+  "title": "Founding date contradicts approved fact",
+  "body": "Hi team, Inkloom was founded in 2015, and we are sharing our story in this month's email.",
+  "intent": {
+    "goal": "Draft an email sharing the company origin story.",
+    "audience": "Customers",
+    "channel": "Email",
+    "mustKeep": []
+  },
+  "kitVersion": "1.0.0",
+  "notes": "Contradicts the approved 2019 founding fact. This is not an unsupported gap.",
+  "expected": [
+    {
+      "matchedText": "founded in 2015",
+      "status": "contradicted",
+      "ruleId": "fact_founded_2019",
+      "citationIds": ["src_fact_founded"]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "email-approved-fact",
+  "title": "Approved founding fact",
+  "body": "Hi team, Inkloom was founded in 2019, and we are celebrating that milestone in this month's email.",
+  "intent": {
+    "goal": "Share a factual company milestone with customers.",
+    "audience": "Customers",
+    "channel": "Email",
+    "mustKeep": ["founded in 2019"]
+  },
+  "kitVersion": "1.0.0",
+  "notes": "Restates the approved founding fact and cites src_fact_founded.",
+  "expected": [
+    {
+      "matchedText": "founded in 2019",
+      "status": "verified",
+      "ruleId": "fact_founded_2019",
+      "citationIds": ["src_fact_founded"]
+    }
+  ]
+}

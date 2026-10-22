@@ -1,0 +1,25 @@
+{
+  "id": "email-forged-citation",
+  "title": "Unknown citation must be rejected by evidence gate",
+  "body": "Hi team, Inkloom was founded in 2019.",
+  "intent": {
+    "goal": "Test that a citation absent from the seed kit is rejected.",
+    "audience": "Internal team",
+    "channel": "Email",
+    "mustKeep": []
+  },
+  "kitVersion": "1.0.0",
+  "notes": "The draft’s real finding cites src_fact_founded. The probe plants src_forged_not_in_seed_kit and the gate must drop it.",
+  "expected": [
+    {
+      "matchedText": "Inkloom was founded in 2019",
+      "status": "verified",
+      "ruleId": "fact_founded_2019",
+      "citationIds": ["src_fact_founded"]
+    }
+  ],
+  "forgedCitationProbe": {
+    "citationIds": ["src_forged_not_in_seed_kit"],
+    "claimedStatus": "verified"
+  }
+}

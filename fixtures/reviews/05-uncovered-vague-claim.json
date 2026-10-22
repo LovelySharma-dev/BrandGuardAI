@@ -1,0 +1,15 @@
+{
+  "id": "email-uncovered-vague-claim",
+  "title": "Vague claim not covered by the kit",
+  "body": "Hi team, our workspace feels more inspiring this spring.",
+  "intent": {
+    "goal": "Write a warm seasonal email about the product experience.",
+    "audience": "Customers",
+    "channel": "Email",
+    "mustKeep": []
+  },
+  "kitVersion": "1.0.0",
+  "notes": "Kit 1.0.0 has no tone rule for this sentence. The engine records no finding. That is abstention, not contradicted and not indeterminate.",
+  "expectNoBlockers": true,
+  "expected": []
+}

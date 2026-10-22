@@ -1,0 +1,21 @@
+{
+  "id": "email-banned-term",
+  "title": "Banned terminology in email body",
+  "body": "Hi team, our brand bible keeps every launch consistent.",
+  "intent": {
+    "goal": "Draft a concise internal email about the launch guidelines.",
+    "audience": "Internal team",
+    "channel": "Email",
+    "mustKeep": []
+  },
+  "kitVersion": "1.0.0",
+  "notes": "Banned term from the published terminology guide. The hit cites src_term_guide.",
+  "expected": [
+    {
+      "matchedText": "brand bible",
+      "status": "policy_hit",
+      "ruleId": "term_brand_bible",
+      "citationIds": ["src_term_guide"]
+    }
+  ]
+}
