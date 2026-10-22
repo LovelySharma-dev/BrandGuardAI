@@ -1,20 +1,29 @@
-# BrandGuard AI — Round 1 Proposal
+# BrandGuard AI — Evidence-Gated Brand Governance
 
-**Provisional product name:** BrandGuard AI *(rename planned before public demo)*  
-**Team name:** `[TEAM_NAME]`  
-**Team size:** `[TEAM_SIZE]`  
-**Date:** 2026-10-20  
-**Status:** Round 1 planning proposal only — no functional product is claimed as built
+- **Provisional product name:** BrandGuard AI *(final naming decision unresolved)*
+- **Team name:** `[TEAM_NAME]`
+- **Team size:** `[TEAM_SIZE]`
+- **Prepared:** 2026-10-21
 
-> **Evidence discipline.** This document uses labelled **assumptions**, **planned experiments**, and **proposed metrics**. It does not invent participant identities, build-window dates, customer interviews, survey results, or measured performance numbers.
+**Status:** Proposal plus a working prototype is present in the repository. The implementation date and whether this work is permitted within the official build window are unresolved; this draft makes no claim that work was completed during that window.
 
----
+> No user research or measured impact is claimed. The demo kit is illustrative, not verified real-world data.
+
+## Executive summary
+
+BrandGuard AI is a proposed pre-publication governance system for marketing and product content. It is designed to link findings to approved evidence—or declare an evidence gap—while keeping `verified`, `contradicted`, `unsupported`, and `indeterminate` claims distinct. Authors remain in control of corrections, and approvals are intended to be role-checked on the server; models never approve content.
+
+The current prototype demonstrates only a deterministic, seeded slice: selected terminology, promotional-phrase, and fact checks; a source-ID membership gate; correction accept/reject; and in-memory review records. It does **not** yet include retrieval, an LLM, authentication, durable storage, or permissioned approval actions. Its presence does not establish when it was built or whether it falls within an official build window.
+
+**Round 1 thesis:** evidence-linked findings + uncertainty-aware statuses + intent-preserving, human-accepted corrections + permissioned human approvals. The combination is a proposed differentiation, not a verified uniqueness claim. Evaluation and user research remain future work.
+
+**Working rubric alignment:** problem understanding; solution; technical feasibility; originality; and scope/feasibility. This document makes no prediction of judging scores.
 
 ## 1. Problem understanding
 
-Organisations publish marketing, product, and support content faster than brand, legal, accessibility, and communications specialists can consistently review it. Pre-publication review must check drafts against approved guidelines, facts, terminology, messaging, visual assets, accessibility expectations, and promotional-claim policies — then explain findings, suggest corrections, enable human approvals, retain history, and surface governance patterns.
+**Problem hypothesis; not validated through user research.** Teams may need to publish marketing, product, and support content faster than brand, legal, accessibility, and communications specialists can consistently review it. Pre-publication review can require checking drafts against approved guidelines, facts, terminology, messaging, visual assets, accessibility expectations, and promotional-claim policies—then explaining findings, suggesting corrections, enabling human approvals, retaining history, and surfacing governance patterns.
 
-Common system failures:
+Failure modes this proposal is designed to address:
 
 1. **Guidelines are archival, not operational** — PDF and wiki rules are interpreted differently by each reviewer.  
 2. **AI critique without authority** — assistants flag “risk” without citing an approved organisational source, or invent citations.  
@@ -22,11 +31,17 @@ Common system failures:
 4. **Intent-destroying remediation** — auto-rewrites erase campaign angle, channel fit, or mandated phrases.  
 5. **Approvals without governance** — spreadsheets and client-side “admin” flags are not permissioned, auditable decisions.
 
-**Why this matters:** failures are not only off-brand tone. They include unsupported promotional claims, outdated facts, banned terms, mismatched assets, accessibility gaps, and the inability to answer who approved what against which guideline version.
+**Potential impact:** issues may extend beyond off-brand tone to unsupported promotional claims, outdated facts, banned terms, mismatched assets, accessibility gaps, or uncertainty about who approved what against which guideline version. These impacts are not measured in this submission.
 
-### Category honesty
+### Supporting evidence and assumptions
 
-“AI checks your brand guidelines” is **not** an original category claim. Public commercial offerings already market brand/compliance content review (including a product named BrandGuard AI at brandguardai.io, and enterprise platforms such as Writer and Acrolinx / Markup AI — existence verified via public pages on 2026-10-20). Our thesis is therefore narrower and more technical: **evidence-gated brand governance** with human-owned corrections and approvals.
+**Sourced evidence (limited):** the Round 1 research notes record public pages for BrandGuard AI, Writer, and Acrolinx / Markup AI, accessed 2026-10-20 ([1](https://brandguardai.io/), [2](https://writer.com/solutions/technology/), [3](https://www.acrolinx.com/)). This establishes examples of products in the broad category only; it is not market-share research, a comprehensive competitor analysis, or proof of comparative performance.
+
+**Assumptions:** the failure modes above reflect a meaningful workflow problem; a seeded single-organisation demo is useful to judges; and reviewers value traceable evidence, calibrated uncertainty, and human control.
+
+**Planned research:** no user interviews, surveys, or demand tests are reported. Any future conversations or evaluations will be described only if actually conducted.
+
+This proposal makes no claim that the category or its mechanisms are unique. Evidence-gated findings, uncertainty-aware statuses, human-approved corrections, and permissioned approvals are intended differentiators whose value and comparative position remain to be validated. “BrandGuard AI” is a provisional name; public use requires a team naming decision and any needed clearance.
 
 ### Hardest technical challenge
 
@@ -34,7 +49,7 @@ Making AI review findings **traceable to approved evidence** while managing miss
 
 ---
 
-## 2. Affected users
+## 2. Target users and organisational context
 
 **Label:** proposed design archetypes — not completed interview research.
 
@@ -45,20 +60,22 @@ Making AI review findings **traceable to approved evidence** while managing miss
 | Brand knowledge owner | Keep facts, terms, and policies current | Drift and tribal rules |
 | Compliance stakeholder (secondary) | Reduce unsupported claims reaching publication | Late absolute claims |
 
-**Proposed demo context:** a single fictional B2B organisation with a versioned brand kit (style guide, approved facts, terminology, claim policy, optional visual tokens).
+**Proposed demo context:** one fictional B2B organisation with a brand kit containing a style guide, approved facts, terminology, and claim policies. The in-app “Inkloom Demo Brand Kit” is synthetic seed content; its figures and statements are not verified facts about Inkloom or another real organisation.
 
 ---
 
-## 3. Proposed solution
+## 3. Proposed solution and current implementation status
 
 ### Value proposition
 
-Pre-publication review that **refuses unsupported confidence**: every consequential finding references an approved source or explicitly identifies an evidence gap; suggestions preserve creator intent and require human acceptance; approvals are server-enforced and auditable. **The model never marks content approved.**
+The proposed product is pre-publication review that **refuses unsupported confidence**: findings reference approved evidence or explicitly identify a gap; suggestions preserve creator intent and require human acceptance; permissioned approvals are enforced on the server. The model must never approve content.
 
-### Mechanism priorities (not claimed unique as slogans)
+The prototype implements only a deterministic, seeded slice of this workflow. Its review screen accepts a draft and one intent field, runs fixed checks, applies or rejects corrections, and stores reviews in memory. There is no LLM, dynamic retrieval, authentication, durable database, or approval transition in the current application.
+
+### Mechanism priorities (proposed; not a uniqueness claim)
 
 **A. Evidence-linked findings**  
-Hybrid engine: deterministic validators + retrieval over a version-pinned brand kit + structured LLM outputs. A server **evidence gate** requires citation IDs to belong to that run’s retrieval snapshot. Findings use statuses:
+The target hybrid engine combines deterministic validators, retrieval over a version-pinned brand kit, and structured LLM outputs. A server **evidence gate** requires citation IDs to belong to that run’s retrieval snapshot. In the current prototype, deterministic checks use one seeded kit and the snapshot contains that kit’s source IDs; no retrieval query or LLM is wired. The schema supports these statuses:
 
 | Status | Meaning |
 | --- | --- |
@@ -67,27 +84,29 @@ Hybrid engine: deterministic validators + retrieval over a version-pinned brand 
 | `unsupported` | Material claim with no supporting source found |
 | `indeterminate` | Ambiguous rule or insufficient context |
 | `policy_hit` | Deterministic term/claim rule fired |
-| `suggestion_only` | Non-blocking style preference |
+| `suggestion_only` | Non-blocking style preference; defined in the schema but not currently emitted |
 
 **Absence of evidence does not automatically mean a claim is false.**
 
 **B. Intent-preserving corrections**  
-Authors declare goal, audience, channel, and must-keep phrases. The system proposes alternatives, shows a version comparison, and applies changes only on explicit acceptance (new revision).
+The prototype captures a goal and provides deterministic proposed corrections with accept/reject controls; acceptance creates an in-memory revision. The full workflow—capturing goal, audience, channel, and must-keep phrases; showing a useful change comparison; and applying changes only after explicit acceptance—is planned. Current UI comparisons display complete original and proposed text, not a focused diff.
 
 **C. Reliable governance**  
-Roles (`author`, `reviewer`, `admin`), allow-listed workflow transitions, append-only audit events, and (as time allows) analytics on recurring mistakes and `indeterminate` clusters that suggest unclear guidelines.
+Permissioned roles (`author`, `reviewer`, `admin`), server-enforced workflow transitions, and durable append-only audit events are planned, not implemented. The prototype records review and correction events in an in-memory array under a fixed demo actor; it has no role checks or approval action. Its analytics page shows session-scoped counts only.
 
 ### Naming / originality
 
-“BrandGuard AI” is provisional due to commercial name collision. We will select a mechanism-led name before demo branding. Originality for judging should rest on fail-closed evidence gating, epistemic statuses, and a permissioned approval ledger — plus honest evaluation — not on the temporary name.
+“BrandGuard AI” is a working name only. Final naming and any required clearance are unresolved. Do not represent the mechanisms as unique without comparative evidence.
 
 ### What remains unproven
 
-Span-level entailment quality; whether authors complete intent fields; measured intent retention; usefulness of analytics on tiny demo data. Strengthening evidence: labelled fixtures, citation validity gates, permission e2e tests, and (if conducted) real reviewer feedback notes.
+Review accuracy beyond the implemented fixed checks; retrieval quality; whether authors complete intent fields; measured intent retention; usefulness of analytics; and permission enforcement are unproven. The current tests exercise deterministic examples and citation membership, not a labelled evaluation set, permission tests, or end-to-end approval workflow. No user research or impact measurement is reported.
 
 ---
 
-## 4. Complete workflow
+## 4. Target workflow and current demo path
+
+The following is the **planned end-to-end workflow**, not a claim that every stage exists in the prototype:
 
 ```text
 Admin publishes Brand Kit version N
@@ -99,49 +118,84 @@ Admin publishes Brand Kit version N
   → Audit event recorded
 ```
 
-**States:** `draft` → `in_review` → `changes_requested` | `approved` | `rejected` (with archival / supersession as needed).
+**Target states:** `draft` → `in_review` → `changes_requested` | `approved` | `rejected` (with archival / supersession as needed). The prototype currently creates review records with `in_review`, `needs_revision`, or `engine_error`; it has no approval transition.
+
+**Implemented demo path:** open the seeded demo, submit copy, inspect fixed-rule findings and evidence statuses, and accept or reject a proposed correction. Reviews and correction events exist only in process memory and reset when the server restarts. The knowledge page shows a read-only kit; the approval queue lists candidate reviews but does not permit approve/reject decisions.
 
 ### Demonstration scenario
 
-A launch email draft claims “customers see 300% ROI in two weeks.” The system labels the metric `unsupported` (not “false”), may add a `policy_hit` for absolute promotional language, and proposes an intent-preserving rewrite. The author accepts via diff; a reviewer approves; the audit log shows kit version and actors. Negative checks: forged citation rejected; non-reviewer cannot approve.
+A launch email draft claims “customers see 300% ROI in two weeks.” In the proposed workflow, a review would label an unsupported claim `unsupported`, not “false”; a deterministic policy hit may also be shown. A correction can be accepted or rejected in the prototype. Reviewer approval, actor attribution from authenticated roles, and a durable audit history are planned and are not currently demonstrable. The test suite includes a forged/out-of-snapshot citation case; it does not include an authorization test.
 
 ---
 
-## 5. Main features
+## 5. Features and implementation status
 
-### Essential for Round 2 (MVP)
+Status labels describe the code inspected on 2026-10-21, not completion of a milestone or eligibility under an event build window.
 
-1. Versioned brand kit (seeded Markdown/JSON acceptable)  
-2. Draft review with declared intent  
-3. Hybrid review engine + evidence gate + status taxonomy  
-4. Findings UI with excerpts and explicit evidence gaps  
-5. Suggestions with side-by-side comparison and human accept/reject  
-6. Server-enforced approval workflow  
-7. Append-only audit events  
-8. Labelled fixture pack and automated tests for citations and permissions  
+| Status | Feature | Current scope / boundary |
+| --- | --- | --- |
+| **Implemented** | Application shell and review surfaces | Dashboard, reviews, read-only brand knowledge, candidate approval queue, process-scoped analytics, and settings pages are present. |
+| **Implemented** | Seeded demo brand kit | One in-code example with facts, sources, terminology, and claim policies; no kit CRUD or version publishing. Demo content is illustrative. |
+| **Implemented** | Deterministic checks and evidence gate | Fixed terminology/claim patterns and limited fact phrases; a constructed source-ID snapshot gates citations. No dynamic retrieval or LLM. |
+| **Implemented** | Uncertainty-aware statuses | Finding schema and checks distinguish `verified`, `contradicted`, `unsupported`, `indeterminate`, and `policy_hit`; unsupported is not treated as contradicted. `suggestion_only` is schema-only at present. |
+| **Implemented** | Human correction decisions | Accept/reject controls update the in-memory review; accepting adds a revision. Suggestions are deterministic, and the displayed comparison is whole-text rather than a focused diff. |
+| **Implemented** | Prototype event recording | Review and correction events append to an in-memory array under a fixed demo actor. This is not durable, authenticated, or a production audit ledger. |
+| **In progress** | Complete review experience | Draft input and goal are present, but audience/channel/must-keep fields, detailed evidence retrieval, and focused diffing are absent. |
+| **In progress** | Governance UI | Approval queue is read-only; knowledge page is read-only; analytics are counts from current-process reviews. |
+| **Planned** | Authenticated, permissioned approvals | Server-side roles, organisation-scoped access, checked transitions, and non-reviewer denial. |
+| **Planned** | Production data and evidence pipeline | Durable database, brand-kit administration/versioning, retrieval, and structured server-side LLM adapter. |
+| **Planned** | Acceptance and evaluation evidence | Labelled fixture set, permission tests, integration/e2e coverage, and measured evaluation. |
 
 ### Explicit exclusions / deferred
 
-Autonomous publishing; client-only authorization; auto-approve by model confidence; full DAM; trademark watch networks; multi-tenant SSO; deep visual/logo QA; CMS/Slack integrations; regulated legal-opinion engines; training on customer content by default.
+Autonomous publishing; auto-approve by model confidence; full DAM; trademark watch networks; multi-tenant SSO; deep visual/logo QA; CMS/Slack integrations; regulated legal-opinion engines; training on customer content by default.
 
 ---
 
 ## 6. Technology stack
 
-| Area | Proposal |
-| --- | --- |
-| Application | Next.js + TypeScript |
-| UI | Tailwind CSS + shadcn/ui |
-| Validation | Zod |
-| Database | PostgreSQL |
-| Retrieval | Postgres full-text + metadata first; `pgvector` only if evaluation requires it |
-| LLM | Server-side provider adapter with structured outputs |
-| Auth | One managed auth solution (decision at build start) |
-| Files | Private object storage when uploads land |
-| Tests | Vitest + Playwright |
-| Deploy | Vercel-compatible |
+| Area | Implemented now | Proposed / planned |
+| --- | --- | --- |
+| Application | Next.js App Router, TypeScript, React | Continue the current app |
+| UI | Tailwind CSS; UI components in the repository | shadcn/ui-compatible components; no product build claim from package presence alone |
+| Validation | Zod schemas for domain inputs/findings | Extend boundary validation to services and any future model output |
+| Database | None; in-memory Maps/arrays | PostgreSQL |
+| Retrieval | Constructed snapshot containing source IDs from the seeded kit | Postgres full-text + metadata first; `pgvector` only if evaluation requires it |
+| LLM | None | Server-side provider adapter with structured outputs |
+| Auth | None; fixed demo actor | Select and integrate a managed auth solution |
+| Files | None | Private object storage when uploads are in scope |
+| Tests | Vitest unit tests | Add integration/e2e and labeled-fixture evaluation |
+| Deploy | No deployment evidence in this submission | Vercel-compatible deployment is a proposal |
 
-**Rationale:** brand governance is a trust problem. Deterministic checks catch machine-checkable policy hits; retrieval grounds factual/policy findings; the LLM structures explanations; the evidence gate blocks unsupported confidence; the workflow service owns approval authority. Secrets never ship in frontend code; roles are re-checked on the server for every mutation.
+**Rationale:** brand governance is a trust problem. The current deterministic checks demonstrate a small part of the intended system. The proposed retrieval, server-side structured LLM, evidence gate, and permissioned workflow are not represented as implemented. No production secret handling or server-side role enforcement has been demonstrated.
+
+### Planned architecture
+
+```text
+Author draft + intent
+  → deterministic rules
+  → retrieval snapshot from an approved, versioned kit
+  → structured server-side model output (planned)
+  → Zod validation + evidence gate (citation IDs ⊆ snapshot)
+  → findings and evidence gaps
+  → human-accepted correction
+  → role-checked approval + append-only audit event
+```
+
+**Current prototype:** the deterministic checks and source-ID membership gate run against one in-code demo kit. The retrieval, model, database, authentication, role checks, and approval/audit workflow shown above are planned.
+
+### Privacy, security, accessibility, and AI oversight
+
+| Area | Product requirement / current boundary |
+| --- | --- |
+| Privacy and confidentiality | The demo uses synthetic seed content. No private customer drafts or uploaded guidelines are used. Production storage, retention, and deletion controls are not implemented. |
+| Secrets | Future provider credentials must stay server-side and out of `NEXT_PUBLIC_` variables. No provider is currently configured. |
+| Authorization and isolation | Future mutations must re-check user and role on the server and scope data by organisation. The prototype has no authentication or production tenant isolation. |
+| Untrusted content | Drafts and guidelines must be treated as untrusted input; evidence must be bounded to approved kit sources. This is a design requirement, not a completed security control. |
+| Audit | Approval decisions are intended to create append-only, durable events. Current prototype events are in-memory and use a fixed demo actor. |
+| Accessibility | Accessible labels and non-colour severity cues are design goals. No formal WCAG conformance audit has been performed. |
+| Human oversight | Authors decide whether to accept a correction; a human reviewer must decide approval. The prototype supports correction accept/reject only; approval authority is not implemented. |
+| AI disclosure | No LLM is wired into the prototype. Any future model-generated findings or suggestions must be identified as AI-assisted; models must never approve content. Training on customer content is not planned by default. |
 
 ---
 
@@ -162,21 +216,31 @@ If `[TEAM_SIZE]` is smaller than four, combine roles explicitly.
 
 ## 8. Plan across all three rounds
 
-**Round 1 (now):** problem/solution docs, architecture, MVP scope, submission PDF content, agent instruction files. No functional product build until the permitted window (`[BUILD_WINDOW_ROUND_2_START]` — **Unresolved**).
+**Round 1:** proposal and planning documents are present, and a working prototype is also present in the repository as of this review. Available history does not establish when the uncommitted implementation was created; official build-window dates and permission are unresolved. Do not claim that the prototype was completed within the official window or that it is Round 2 work without dated evidence and organiser confirmation.
 
-**Round 2:** phased vertical slice — foundation → UI → DB/auth → brand kit → review/evidence engine → corrections → approval/audit → optional files/visuals → thin analytics → deploy/demo. Cut visuals and ingestion before cutting the evidence gate or server approvals.
+**Round 2 (planned, subject to official rules):** phased vertical slice — foundation → UI → DB/auth → brand kit → review/evidence engine → corrections → approval/audit → optional files/visuals → thin analytics → deploy/demo. Cut visuals and ingestion before cutting the evidence gate or server approvals.
 
 **Round 3:** freeze scope; run labelled evaluation; report measured metrics only; polish demo; document limitations; prepare judge Q&A.
+
+### Three specific improvements and acceptance criteria
+
+All targets below are proposed acceptance criteria, not achieved results.
+
+| Round | Improvement | Acceptance evidence |
+| --- | --- | --- |
+| 2 | Evidence integrity | Test every rendered citation ID against the review snapshot; target **100% valid IDs** and **0 forged citations accepted** in the test set. |
+| 2 | Human-controlled corrections | Automated tests show acceptance creates a revision and rejection leaves the draft unchanged; add before/after comparison and preserve declared intent. |
+| 3 | Permissioned approvals and measured calibration | E2E tests block **100% of unauthorized approval attempts** and record each valid transition. Report per-status precision/recall on a frozen labelled set; do not set or report a performance result before measurement. |
 
 ---
 
 ## 9. Expected impact
 
-### Qualitative expected outcomes (not yet measured)
+### Qualitative expected outcomes (proposed; not measured)
 
 Fewer unsupported claims reaching publication; clearer reviewer decisions with cited sources; corrections that retain campaign intent; auditable approvals pinned to guideline versions; signals that guidelines themselves are unclear (`indeterminate` clusters).
 
-### Evaluation metrics (**proposed** until measured)
+### Evaluation metrics (**proposed**, not results)
 
 | Metric | Proposed target |
 | --- | --- |
@@ -186,7 +250,7 @@ Fewer unsupported claims reaching publication; clearer reviewer decisions with c
 | Correction regression rate | Track; minimise blocker reintroduction after accepted suggestions |
 | Approval-permission test pass rate | 100% unauthorized attempts blocked in e2e |
 
-Human intent-retention ratings on suggestions are a planned qualitative supplement.
+Human intent-retention ratings on suggestions are a planned qualitative supplement. No measured impact, user research, or evaluation result is available in this submission.
 
 ---
 
@@ -204,8 +268,10 @@ Post-MVP / post-event: final rename; stronger span-level support checks; hybrid 
 | --- | --- |
 | Official team name | `[TEAM_NAME]` |
 | Team size | `[TEAM_SIZE]` |
-| Provisional product name | BrandGuard AI (rename planned) |
-| Challenge / track | Inkloom AI — brand governance *(confirm official title)* |
+| Product name | BrandGuard AI *(provisional; final decision unresolved)* |
+| Official challenge / track | `[OFFICIAL_CHALLENGE_OR_TRACK_TITLE]` |
+| Official PDF format / page and file-size limits | `[OFFICIAL_PDF_FORMAT_PAGE_LIMIT_AND_SIZE]` |
+| Official build-window dates | `[OFFICIAL_BUILD_WINDOW_DATES]` *(unresolved; no claim that the prototype was built within this window)* |
 
 | # | Full legal name | Email | Responsibilities / contributions | Affiliation (if required) |
 | --- | --- | --- | --- | --- |
@@ -218,14 +284,18 @@ Adjust rows to match `[TEAM_SIZE]`. **Do not submit with unresolved placeholders
 
 ---
 
-## Appendix — Assumptions and research checklist
+## Appendix — Assumptions and submission readiness
 
 | Type | Item |
 | --- | --- |
 | Assumption | Single-tenant seeded demo suffices for judging |
 | Assumption | Judges will reward calibrated abstention if explained |
-| Assumption | Lexical retrieval suffices for small seed kits |
-| Planned | Fixture baseline (E2), forged-cite probe (E3), rename check (E5) |
-| Checklist | Attach official organiser packet; confirm API/credit requirements; fill team legal details; set build-window dates |
+| Assumption | Lexical retrieval may suffice for small seed kits; this has not been evaluated |
 
-Supporting analyses: `problem-analysis.md`, `solution-and-workflow.md`, `technical-plan.md`, `three-round-roadmap.md`, `judging-self-review.md`.
+### Information to supply before final export
+
+1. **Official requirements and timeline:** the organiser packet with required challenge/track wording, fields, PDF format and limits, deadline, and build-window rules/dates; provide dated implementation evidence only if making a build-window claim.
+2. **Team details:** official team name and size; every participant’s legal name, email, role/contribution, and affiliation if required. Adjust the roster to the actual team.
+3. **Product name:** the team’s final naming decision, or confirmation to retain “BrandGuard AI” as provisional.
+
+Until these are supplied, the official challenge title, PDF requirements, team roster, and final product name remain unresolved. This is a submission draft; no submission or organiser confirmation is claimed.
