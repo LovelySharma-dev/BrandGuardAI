@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { DEMO_BRAND_KIT } from "@/data/seed-kit";
 import { applyEvidenceGate } from "@/engine/evidence-gate";
@@ -6,14 +6,7 @@ import {
   applySuggestionDecision,
   runDeterministicReview,
 } from "@/engine/review";
-import { __resetAuditForTests } from "@/lib/audit";
-import { __resetStoreForTests } from "@/lib/store";
 import type { BrandKit, Finding } from "@/domain/schemas";
-
-beforeEach(() => {
-  __resetStoreForTests();
-  __resetAuditForTests();
-});
 
 describe("runDeterministicReview", () => {
   it("accepts compliant content with optional verified facts", () => {

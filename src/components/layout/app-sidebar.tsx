@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, ShieldCheck } from "lucide-react";
 
+import { logoutAction } from "@/app/actions/auth";
 import { NAV_ITEMS } from "@/components/layout/nav-items";
+import type { SessionUser } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -68,22 +70,38 @@ function BrandMark() {
   );
 }
 
-export function AppSidebar() {
+function AccountFooter({ user }: { user: SessionUser }) {
+  return (
+    <div className="mt-auto px-3 pt-6">
+      <p className="text-sm font-medium">{user.name}</p>
+      <p className="text-xs text-muted-foreground">
+        {user.role} · {user.orgName}
+      </p>
+      <form action={logoutAction} className="mt-3">
+        <button
+          type="submit"
+          className="text-xs text-muted-foreground underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        >
+          Sign out
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export function AppSidebar({ user }: { user: SessionUser }) {
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar/80 px-3 py-4 md:flex">
       <div className="mb-6 px-1">
         <BrandMark />
       </div>
       <NavLinks />
-      <p className="mt-auto px-3 pt-6 text-xs leading-relaxed text-muted-foreground">
-        Findings cite approved sources or declare evidence gaps. Models never
-        approve content.
-      </p>
+      <AccountFooter user={user} />
     </aside>
   );
 }
 
-export function MobileNav() {
+export function MobileNav({ user }: { user: SessionUser }) {
   return (
     <div className="flex items-center justify-between border-b border-border bg-card/80 px-4 py-3 md:hidden">
       <BrandMark />
@@ -100,6 +118,7 @@ export function MobileNav() {
             <SheetTitle>Navigation</SheetTitle>
           </SheetHeader>
           <NavLinks />
+          <AccountFooter user={user} />
         </SheetContent>
       </Sheet>
     </div>

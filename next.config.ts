@@ -7,6 +7,7 @@ import type { NextConfig } from "next";
  * Revisit when adopting ISR-style review detail pages.
  */
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["@electric-sql/pglite"],
   turbopack: {
     rules: {
       "*.css": {

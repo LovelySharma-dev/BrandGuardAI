@@ -51,8 +51,9 @@ Hard boundaries:
 2. **Evidence gate on server:** citation IDs must be ⊆ retrieval snapshot for that run.
 3. **Workflow authority on server:** state machine transitions checked with real roles.
 4. **Secrets on server only:** never `NEXT_PUBLIC_` for provider keys.
-5. **Vectors optional:** start with Postgres FTS + metadata; add `pgvector` only if eval justifies it.
-6. **Schema versions:** Zod at boundaries; version model wire schemas.
+5. **Free model only:** `LLM_MODEL` is `openrouter/free`, or a specific id ending in `:free`. Never a paid id, and never a fallback list that includes one (OpenRouter bills the fallback).
+6. **Vectors optional:** start with Postgres FTS + metadata; add `pgvector` only if eval justifies it.
+7. **Schema versions:** Zod at boundaries; version model wire schemas.
 
 Do not introduce new infrastructure (queues, extra DBs, agent frameworks) unless a phase’s acceptance criteria require it.
 

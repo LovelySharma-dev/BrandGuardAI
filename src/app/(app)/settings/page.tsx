@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
+import { requireUser } from "@/lib/session";
 import {
   Card,
   CardContent,
@@ -9,30 +10,37 @@ import {
 
 export const metadata = { title: "Settings" };
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const user = await requireUser();
   return (
     <AppShell
       title="Settings"
-      description="Organisation preferences for the Phase 1 foundation."
+      description="Organisation and session for the signed-in user."
     >
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="shadow-none">
           <CardHeader>
             <CardTitle>Organisation</CardTitle>
-            <CardDescription>Demo tenant used for local development.</CardDescription>
+            <CardDescription>
+              Queries for this session are limited to this organisation.
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             <div className="flex justify-between gap-4 border-b border-border py-2">
-              <span className="text-muted-foreground">Org ID</span>
-              <span className="font-mono text-xs">org_demo</span>
+              <span className="text-muted-foreground">Organisation</span>
+              <span>{user.orgName}</span>
             </div>
             <div className="flex justify-between gap-4 border-b border-border py-2">
-              <span className="text-muted-foreground">Pinned kit</span>
-              <span>Inkloom Demo Brand Kit v1.0.0</span>
+              <span className="text-muted-foreground">Org ID</span>
+              <span className="font-mono text-xs">{user.orgId}</span>
+            </div>
+            <div className="flex justify-between gap-4 border-b border-border py-2">
+              <span className="text-muted-foreground">Signed in</span>
+              <span>{user.email}</span>
             </div>
             <div className="flex justify-between gap-4 py-2">
-              <span className="text-muted-foreground">Auth</span>
-              <span>Not configured (Phase 3)</span>
+              <span className="text-muted-foreground">Role</span>
+              <span className="capitalize">{user.role}</span>
             </div>
           </CardContent>
         </Card>

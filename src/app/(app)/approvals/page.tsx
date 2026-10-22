@@ -1,14 +1,15 @@
 import Link from "next/link";
 
 import { AppShell } from "@/components/layout/app-shell";
+import { ApprovalActions } from "@/components/review/approval-actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { listReviews } from "@/lib/store";
+import { listReviewsForCurrentUser } from "@/lib/store";
 
 export const metadata = { title: "Approval Queue" };
 
-export default function ApprovalsPage() {
-  const queue = listReviews("org_demo").filter((r) =>
+export default async function ApprovalsPage() {
+  const queue = (await listReviewsForCurrentUser()).filter((r) =>
     ["in_review", "pending_approval", "needs_revision"].includes(r.status),
   );
 
@@ -18,11 +19,11 @@ export default function ApprovalsPage() {
       description="Human reviewers decide publication readiness. Models never set approved."
     >
       <Alert className="mb-6">
-        <AlertTitle>Server-enforced roles come next</AlertTitle>
+        <AlertTitle>Decisions use the signed-in role</AlertTitle>
         <AlertDescription>
-          Phase 1 lists candidate reviews only. Role-checked transitions and
-          immutable audit on approve/reject land in the approval workflow phase
-          (see milestones Phase 7).
+          Approve, request changes, and reject reload the role from the
+          session. An author cannot approve. A user only sees reviews from
+          their own organisation.
         </AlertDescription>
       </Alert>
 
@@ -56,9 +57,18 @@ export default function ApprovalsPage() {
                   blockers
                 </p>
               </div>
-              <Badge variant="secondary" className="capitalize">
-                {r.status.replaceAll("_", " ")}
-              </Badge>
+              <div className="flex flex-wrap items-center justify-end gap-3">
+                <Badge variant="secondary" className="capitalize">
+                  {r.status.replaceAll("_", " ")}
+                </Badge>
+                {r.status === "in_review" || r.status === "pending_approval" ? (
+                  <ApprovalActions reviewId={r.id} />
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Waiting for the author to resubmit.
+                  </p>
+                )}
+              </div>
             </li>
           ))}
         </ul>

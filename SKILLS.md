@@ -61,7 +61,8 @@ Related truth sources: `AGENTS.md`, `docs/round-1/`.
 2. Store `provider`, `model`, `schemaVersion` on findings batch metadata.
 3. Add timeout, size limits, and single repair retry on schema failure.
 4. Feature-flag provider in env; never hardcode keys.
-5. Document model choice as assumption until eval runs.
+5. Set `LLM_MODEL` to `openrouter/free`, or to one id that ends in `:free`. Refuse a paid model id and any fallback that includes one.
+6. Document model choice as assumption until eval runs.
 
 **Expected outputs:** Structured JSON parseable by Zod; failures surface as review error state.
 

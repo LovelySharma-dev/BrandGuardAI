@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { ReviewWorkspace } from "@/components/review/review-workspace";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getReview } from "@/lib/store";
+import { getReviewForCurrentUser } from "@/lib/store";
 
 export const metadata = { title: "Review" };
 
@@ -33,7 +33,7 @@ async function ReviewDetail({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const review = getReview(id);
+  const review = await getReviewForCurrentUser(id);
   if (!review) notFound();
 
   return (

@@ -38,6 +38,12 @@
 
 **Hard rule:** LLM recommendation never sets `approved`.
 
+### Allow-list (implemented)
+
+`transitionReview(reviewId, action)` reads the signed-in user from the session cookie, then reloads that user's role from Postgres. The request body cannot supply a role or an organisation. `approved` is written only when the reloaded role is `reviewer` or `admin`. Review reads include `org_id` from that user row.
+
+`request_changes` stores `needs_revision`, the status name already used by the review engine. `changes_requested`, `archived`, and `superseded` are not separate stored statuses in this slice.
+
 ## Review engine internal workflow
 
 1. **Normalise input** — charset, truncated length limits, content type.

@@ -25,6 +25,7 @@ Design details live under **`docs/round-1/`**. Reusable workflows live in **`SKI
 - **Server-side authz** for roles and workflow transitions. UI checks are not authority.
 - Never set content to `approved` because an LLM recommended it.
 - No API secrets in client / `NEXT_PUBLIC_` for provider keys.
+- **`LLM_MODEL` is always free:** `openrouter/free`, or a model id ending in `:free`. Do not set or suggest a paid id. Do not add a paid model as a fallback.
 - Add `pgvector` only if retrieval evaluation justifies it.
 
 ## Engineering practice

@@ -9,12 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { listReviews } from "@/lib/store";
+import { listReviewsForCurrentUser } from "@/lib/store";
 
 export const metadata = { title: "Dashboard" };
 
-export default function DashboardPage() {
-  const reviews = listReviews("org_demo");
+export default async function DashboardPage() {
+  const reviews = await listReviewsForCurrentUser();
   const blockers = reviews.reduce(
     (n, r) => n + r.findings.filter((f) => f.severity === "blocker").length,
     0,

@@ -3,12 +3,12 @@ import { Plus } from "lucide-react";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui/badge";
-import { listReviews } from "@/lib/store";
+import { listReviewsForCurrentUser } from "@/lib/store";
 
 export const metadata = { title: "Content Reviews" };
 
-export default function ReviewsPage() {
-  const reviews = listReviews("org_demo");
+export default async function ReviewsPage() {
+  const reviews = await listReviewsForCurrentUser();
 
   return (
     <AppShell

@@ -23,6 +23,7 @@ Before recommending architecture changes or writing application code, open and f
 ## Security and privacy
 
 - Never place API keys or provider secrets in frontend code or `NEXT_PUBLIC_` variables
+- `LLM_MODEL` is always a free OpenRouter id: `openrouter/free`, or a model id ending in `:free`. Do not select a paid model or a paid fallback.
 - Never rely on client-side role checks as authorization
 - Scope data access by organisation
 - Treat user drafts and uploaded guideline text as untrusted input

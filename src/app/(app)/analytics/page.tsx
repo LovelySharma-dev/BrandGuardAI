@@ -7,12 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { listReviews } from "@/lib/store";
+import { listReviewsForCurrentUser } from "@/lib/store";
 
 export const metadata = { title: "Governance Analytics" };
 
-export default function AnalyticsPage() {
-  const reviews = listReviews("org_demo");
+export default async function AnalyticsPage() {
+  const reviews = await listReviewsForCurrentUser();
   const byRule = new Map<string, number>();
   const byStatus = new Map<string, number>();
 

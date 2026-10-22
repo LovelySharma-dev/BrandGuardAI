@@ -2,14 +2,14 @@
 
 import { DEMO_BRAND_KIT } from "@/data/seed-kit";
 import type { ContentReview, ReviewInput } from "@/domain/schemas";
+import { ReviewInputSchema } from "@/domain/schemas";
 import {
   applySuggestionDecision,
   runDeterministicReview,
 } from "@/engine/review";
-import { appendAuditEvent } from "@/lib/audit";
-import { getReview, listReviews, saveReview } from "@/lib/store";
-
-const DEMO_ACTOR = "user_demo_author";
+import { appendAuditEvent, getReview, listReviews, saveReview } from "@/db/repository";
+import { requireUser } from "@/lib/session";
+import { transitionReview } from "@/lib/transition-review";
 
 export type ActionResult<T> =
   | { ok: true; data: T }
@@ -18,30 +18,34 @@ export type ActionResult<T> =
 export async function submitReviewAction(
   input: ReviewInput,
 ): Promise<ActionResult<ContentReview>> {
-  const result = runDeterministicReview(input, DEMO_BRAND_KIT);
+  const user = await requireUser();
+  const parsed = ReviewInputSchema.parse(input);
+  const scoped = { ...parsed, orgId: user.orgId };
+  const result = runDeterministicReview(scoped, DEMO_BRAND_KIT);
   if (!result.ok) {
     if (result.review) {
-      saveReview(result.review);
+      await saveReview({ ...result.review, orgId: user.orgId });
     }
     return { ok: false, error: result.error };
   }
 
-  saveReview(result.review, result.snapshot);
-  appendAuditEvent({
-    orgId: result.review.orgId,
-    actorId: DEMO_ACTOR,
+  const review = { ...result.review, orgId: user.orgId };
+  await saveReview(review, result.snapshot);
+  await appendAuditEvent({
+    orgId: user.orgId,
+    actorId: user.id,
     action: "review.created",
     entityType: "ContentReview",
-    entityId: result.review.id,
+    entityId: review.id,
     after: {
-      status: result.review.status,
-      findingCount: result.review.findings.length,
-      kitVersion: result.review.kitVersion,
+      status: review.status,
+      findingCount: review.findings.length,
+      kitVersion: review.kitVersion,
       snapshotId: result.snapshot.id,
     },
   });
 
-  return { ok: true, data: result.review };
+  return { ok: true, data: review };
 }
 
 export async function decideSuggestionAction(
@@ -49,17 +53,18 @@ export async function decideSuggestionAction(
   suggestionId: string,
   decision: "accept" | "reject",
 ): Promise<ActionResult<ContentReview>> {
-  const existing = getReview(reviewId);
+  const user = await requireUser();
+  const existing = await getReview(reviewId, user.orgId);
   if (!existing) {
     return { ok: false, error: "Review not found" };
   }
 
   try {
     const updated = applySuggestionDecision(existing, suggestionId, decision);
-    saveReview(updated);
-    appendAuditEvent({
+    await saveReview(updated);
+    await appendAuditEvent({
       orgId: updated.orgId,
-      actorId: DEMO_ACTOR,
+      actorId: user.id,
       action:
         decision === "accept"
           ? "suggestion.accepted"
@@ -82,14 +87,23 @@ export async function decideSuggestionAction(
   }
 }
 
-export async function listReviewsAction(
-  orgId = "org_demo",
-): Promise<ContentReview[]> {
-  return listReviews(orgId);
+export async function listReviewsAction(): Promise<ContentReview[]> {
+  const user = await requireUser();
+  return listReviews(user.orgId);
 }
 
 export async function getReviewAction(
   id: string,
 ): Promise<ContentReview | null> {
-  return getReview(id) ?? null;
+  const user = await requireUser();
+  return getReview(id, user.orgId);
+}
+
+export async function transitionReviewAction(
+  reviewId: string,
+  action: unknown,
+): Promise<ActionResult<ContentReview>> {
+  const result = await transitionReview(reviewId, action);
+  if (!result.ok) return result;
+  return { ok: true, data: result.review };
 }
