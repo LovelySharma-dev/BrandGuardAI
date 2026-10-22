@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "eval": "vitest run src/engine/eval.test.ts",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
