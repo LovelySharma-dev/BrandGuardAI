@@ -13,8 +13,8 @@ Design details live under **`docs/round-1/`**. Reusable workflows live in **`SKI
 
 ## Phase discipline
 
-- Round 1 planning docs may be edited; **do not implement the functional product** until the permitted development window opens (unless the user explicitly authorises a narrow scaffolding task).
-- Implement **one phase at a time** (see `docs/round-1/09-milestones.md`). Avoid building the entire project in a single operation.
+- Hackathon build window is open. Implement **one phase at a time** (see `docs/round-1/09-milestones.md`). Avoid building the entire project in a single operation.
+- Prefer the P0 vertical slice over speculative infrastructure.
 - A phase is incomplete until acceptance criteria and tests pass.
 
 ## Architecture invariants
