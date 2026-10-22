@@ -42,5 +42,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local agent tooling and scratch exports
 .agent-skills
-.agents/*
+.agents/
+skills-lock.json
+docs/round-1/BrandGuardAI-Round1-Submission-test*.pdf
