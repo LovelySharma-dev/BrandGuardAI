@@ -1,0 +1,16 @@
+{
+  "id": "ambiguous-year",
+  "title": "A year without a founding claim",
+  "body": "Our timeline mentions 2019 without a founding claim.",
+  "intent": {
+    "goal": "Check that a bare year is not treated as a verified or contradicted fact.",
+    "audience": "Brand team",
+    "channel": "Website",
+    "mustKeep": []
+  },
+  "kitVersion": "1.0.0",
+  "notes": "2019 appears, but the draft does not assert a founding date. Absence of a founding claim is not a contradiction.",
+  "expectNoBlockers": true,
+  "absentStatuses": ["verified", "contradicted"],
+  "expected": []
+}

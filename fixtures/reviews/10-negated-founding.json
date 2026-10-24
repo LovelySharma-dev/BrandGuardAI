@@ -1,0 +1,22 @@
+{
+  "id": "negated-founding",
+  "title": "Denial of the approved founding year",
+  "body": "Inkloom was not founded in 2019.",
+  "intent": {
+    "goal": "Check that denying an approved fact is a contradiction.",
+    "audience": "Brand team",
+    "channel": "Website",
+    "mustKeep": []
+  },
+  "kitVersion": "1.0.0",
+  "exhaustive": true,
+  "notes": "The draft negates the approved 2019 founding fact. That is a contradiction with the source, not a verification and not an evidence gap.",
+  "expected": [
+    {
+      "matchedText": "founded in 2019",
+      "status": "contradicted",
+      "ruleId": "fact_founded_2019",
+      "citationIds": ["src_fact_founded"]
+    }
+  ]
+}

@@ -9,6 +9,7 @@
     "mustKeep": ["founded in 2019"]
   },
   "kitVersion": "1.0.0",
+  "exhaustive": true,
   "notes": "Restates the approved founding fact and cites src_fact_founded.",
   "expected": [
     {

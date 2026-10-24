@@ -5,8 +5,9 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { ReviewWorkspace } from "@/components/review/review-workspace";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getReviewForCurrentUser } from "@/lib/store";
 import { getBrandKitVersion } from "@/db/brand-kits";
+import { getSnapshot } from "@/db/repository";
+import { getReviewForCurrentUser } from "@/lib/store";
 
 export const metadata = { title: "Review" };
 
@@ -37,21 +38,36 @@ async function ReviewDetail({
   const review = await getReviewForCurrentUser(id);
   if (!review) notFound();
   const kit = await getBrandKitVersion(review.orgId, review.kitVersion);
+  const snapshot = review.snapshotId
+    ? await getSnapshot(review.snapshotId, review.orgId)
+    : null;
 
   return (
     <AppShell
       title={review.title}
       description={`Kit v${review.kitVersion} · ${review.status.replaceAll("_", " ")}`}
       actions={
-        <Link
-          href="/reviews/new"
-          className="inline-flex h-8 items-center rounded-md border border-border bg-background px-2.5 text-sm font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-        >
-          New review
-        </Link>
+        <>
+          <Link
+            href={`/reviews/${review.id}/report`}
+            className="inline-flex h-8 items-center rounded-md border border-border bg-background px-2.5 text-sm font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          >
+            Download report
+          </Link>
+          <Link
+            href="/reviews/new"
+            className="inline-flex h-8 items-center rounded-md border border-border bg-background px-2.5 text-sm font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          >
+            New review
+          </Link>
+        </>
       }
     >
-      <ReviewWorkspace initialReview={review} sources={kit?.sources ?? []} />
+      <ReviewWorkspace
+        initialReview={review}
+        sources={kit?.sources ?? []}
+        snapshot={snapshot}
+      />
     </AppShell>
   );
 }

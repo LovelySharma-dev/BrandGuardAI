@@ -1,5 +1,6 @@
 import type { BrandKit, Finding } from "@/domain/schemas";
 import { createId } from "@/engine/ids";
+import { deniesAt } from "@/engine/local-negation";
 
 /**
  * Checks factual-looking assertions against approved facts.
@@ -21,6 +22,7 @@ export function checkFactualClaims(
     for (const phrase of fact.contradictingPhrases) {
       const idx = lower.indexOf(phrase.toLowerCase());
       if (idx === -1) continue;
+      if (deniesAt(body, idx)) continue;
       const end = idx + phrase.length;
       const findingId = createId("find");
       const suggestionId = createId("sug");
@@ -56,15 +58,20 @@ export function checkFactualClaims(
     const statementIdx = lower.indexOf(fact.statement.toLowerCase());
     if (statementIdx !== -1) {
       const end = statementIdx + fact.statement.length;
+      const denied = deniesAt(body, statementIdx);
       findings.push({
         id: createId("find"),
         reviewId,
         category: "factual_claim",
         span: { start: statementIdx, end },
-        status: "verified",
-        severity: "info",
-        summary: `Matches approved fact: ${fact.statement}`,
-        rationale: `Draft language aligns with approved fact “${fact.id}” and cites its source.`,
+        status: denied ? "contradicted" : "verified",
+        severity: denied ? "blocker" : "info",
+        summary: denied
+          ? `Denies approved fact: ${fact.statement}`
+          : `Matches approved fact: ${fact.statement}`,
+        rationale: denied
+          ? `The draft negates approved fact “${fact.id}”. The source still states it.`
+          : `Draft language aligns with approved fact “${fact.id}” and cites its source.`,
         citationIds: [fact.sourceId],
         ruleId: fact.id,
         matchedText: body.slice(statementIdx, end),
@@ -72,12 +79,10 @@ export function checkFactualClaims(
       continue;
     }
 
-    // Cluster: founding year 2019 near founded/established
     if (fact.id === "fact_founded_2019") {
-      const yearMatch = /\b(founded|established)\b[\s\w,]{0,40}\b2019\b|\b2019\b[\s\w,]{0,40}\b(founded|established)\b/i.exec(
-        body,
-      );
+      const yearMatch = /\b(?:was\s+|were\s+)?(?:founded|established)\s+in\s+2019\b/i.exec(body);
       if (yearMatch) {
+        const denied = deniesAt(body, yearMatch.index);
         findings.push({
           id: createId("find"),
           reviewId,
@@ -86,10 +91,14 @@ export function checkFactualClaims(
             start: yearMatch.index,
             end: yearMatch.index + yearMatch[0].length,
           },
-          status: "verified",
-          severity: "info",
-          summary: `Matches approved fact: ${fact.statement}`,
-          rationale: `Founding year language aligns with approved fact “${fact.id}”.`,
+          status: denied ? "contradicted" : "verified",
+          severity: denied ? "blocker" : "info",
+          summary: denied
+            ? `Denies approved fact: ${fact.statement}`
+            : `Matches approved fact: ${fact.statement}`,
+          rationale: denied
+            ? `The draft negates the approved founding year in “${fact.id}”.`
+            : `The draft says the organisation was founded or established in 2019, matching “${fact.id}”.`,
           citationIds: [fact.sourceId],
           ruleId: fact.id,
           matchedText: yearMatch[0],
@@ -99,19 +108,24 @@ export function checkFactualClaims(
 
     if (fact.id === "fact_customers_2000") {
       const cust =
-        /\b(trusted by|serving)\b[\s\w,]{0,40}\b(more than\s+)?2,?000\b[\s\w,]{0,20}\b(design teams|teams)\b/i.exec(
+        /\b(?:trusted by|serving)\b[^.]{0,40}?\b(?:more than\s+)?2,?000\b[^.]{0,24}\bdesign teams\b/i.exec(
           body,
         );
       if (cust) {
+        const denied = deniesAt(body, cust.index);
         findings.push({
           id: createId("find"),
           reviewId,
           category: "factual_claim",
           span: { start: cust.index, end: cust.index + cust[0].length },
-          status: "verified",
-          severity: "info",
-          summary: `Matches approved fact: ${fact.statement}`,
-          rationale: `Customer metric language aligns with approved fact “${fact.id}”.`,
+          status: denied ? "contradicted" : "verified",
+          severity: denied ? "blocker" : "info",
+          summary: denied
+            ? `Denies approved fact: ${fact.statement}`
+            : `Matches approved fact: ${fact.statement}`,
+          rationale: denied
+            ? `The draft negates the approved customer figure in “${fact.id}”.`
+            : `The draft uses the approved “design teams” figure from “${fact.id}”.`,
           citationIds: [fact.sourceId],
           ruleId: fact.id,
           matchedText: cust[0],
@@ -126,6 +140,7 @@ export function checkFactualClaims(
   while ((m = foundedYear.exec(body)) !== null) {
     const year = m[1];
     if (year === "2019") continue;
+    if (deniesAt(body, m.index)) continue;
     const already = findings.some(
       (f) =>
         f.span &&

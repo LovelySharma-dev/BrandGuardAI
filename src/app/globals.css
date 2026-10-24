@@ -107,6 +107,308 @@
   }
 }
 
+/* Decorative motion starts from the finished state. Reduced motion never applies it. */
+.proof-rule,
+.strike-draw,
+.read-progress {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.read-progress {
+  transform: scaleX(0);
+}
+
+.rule-draw {
+  transform: scaleY(1);
+  transform-origin: top center;
+}
+
+.note-rise,
+.sheet-settle,
+.stamp-in {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .proof-rule {
+    animation: proof-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .sample-review li.note-rise {
+    animation: note-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .sample-review .rule-draw {
+    animation: rule-draw 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .sample-review li:nth-child(1).note-rise,
+  .sample-review li:nth-child(1) .rule-draw {
+    animation-delay: 0.12s;
+  }
+
+  .sample-review li:nth-child(2).note-rise,
+  .sample-review li:nth-child(2) .rule-draw {
+    animation-delay: 0.28s;
+  }
+
+  .sample-review li:nth-child(3).note-rise,
+  .sample-review li:nth-child(3) .rule-draw {
+    animation-delay: 0.44s;
+  }
+
+  .sample-review li:nth-child(4).note-rise,
+  .sample-review li:nth-child(4) .rule-draw {
+    animation-delay: 0.6s;
+  }
+
+  .sheet-settle {
+    animation: note-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .strike-draw {
+    animation: proof-draw 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+  }
+
+  .stamp-in {
+    animation: stamp-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+  }
+
+  .abstract-gate {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: rule-draw 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .abstract-seal {
+    animation: seal-draw 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+  }
+
+  .abstract-token-pass {
+    animation: abstract-pass 9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  .abstract-token-late {
+    animation-delay: 0.7s;
+  }
+
+  .abstract-token-drop {
+    animation: abstract-fall 9s cubic-bezier(0.22, 1, 0.36, 1) 0.35s infinite;
+  }
+
+  .abstract-scan {
+    animation: abstract-scan 9s linear infinite;
+  }
+
+  .gate-board .rule-draw {
+    transform-origin: top center;
+    animation: rule-draw 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .gate-board .gate-verdict {
+    animation: gate-arrive 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .gate-board li:nth-child(1) .gate-verdict,
+  .gate-board li:nth-child(1) .rule-draw {
+    animation-delay: 0.2s;
+  }
+
+  .gate-board li:nth-child(2) .gate-verdict,
+  .gate-board li:nth-child(2) .rule-draw {
+    animation-delay: 0.45s;
+  }
+
+  .gate-board li:nth-child(3) .gate-verdict,
+  .gate-board li:nth-child(3) .rule-draw {
+    animation-delay: 0.7s;
+  }
+
+  .gate-board li:nth-child(4) .gate-verdict,
+  .gate-board li:nth-child(4) .rule-draw {
+    animation-delay: 0.95s;
+  }
+
+  .gate-spine {
+    transform: scaleY(1);
+    transform-origin: top center;
+    animation: rule-draw 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .step-meter.is-running {
+    transform: scaleX(0);
+    transform-origin: left center;
+    animation: proof-draw 4.8s linear forwards;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .read-progress {
+      animation: proof-draw linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+
+@keyframes proof-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes rule-draw {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes gate-arrive {
+  from {
+    transform: translateX(22px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes note-rise {
+  from {
+    transform: translateY(12px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes stamp-in {
+  from {
+    transform: rotate(-8deg) scale(0.94);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.abstract-field {
+  color: #1a1814;
+}
+
+.abstract-field-paper {
+  color: #f4efe6;
+}
+
+.abstract-rule {
+  stroke: currentColor;
+  stroke-opacity: 0.28;
+  stroke-width: 1;
+}
+
+.abstract-field-paper .abstract-rule {
+  stroke-opacity: 0.22;
+}
+
+.abstract-scan {
+  stroke: #9a5b12;
+  stroke-width: 1.5;
+  transform: none;
+}
+
+.abstract-gate {
+  stroke: #9a5b12;
+  stroke-width: 2;
+  transform: scaleY(1);
+  transform-box: fill-box;
+  transform-origin: top center;
+}
+
+.abstract-seal {
+  fill: none;
+  stroke: #9a5b12;
+  stroke-width: 1.5;
+  stroke-dasharray: 339;
+  stroke-dashoffset: 0;
+}
+
+.abstract-seal-core {
+  fill: #9a5b12;
+}
+
+.abstract-kept {
+  fill: currentColor;
+}
+
+.abstract-kept-soft {
+  fill: #9a5b12;
+}
+
+.abstract-dropped {
+  fill: #b45309;
+}
+
+.abstract-field-paper .abstract-dropped {
+  fill: #e7b8a4;
+}
+
+.abstract-token-drop {
+  transform: translateY(58px);
+}
+
+@keyframes seal-draw {
+  from {
+    stroke-dashoffset: 339;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes abstract-pass {
+  0% {
+    transform: translateX(-230px);
+  }
+  36%,
+  78% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-230px);
+  }
+}
+
+@keyframes abstract-fall {
+  0% {
+    transform: translate(-210px, 0);
+  }
+  28% {
+    transform: translate(-28px, 0);
+  }
+  46%,
+  78% {
+    transform: translate(0, 58px);
+  }
+  100% {
+    transform: translate(-210px, 0);
+  }
+}
+
+@keyframes abstract-scan {
+  0% {
+    transform: translateY(-130px);
+  }
+  50% {
+    transform: translateY(130px);
+  }
+  100% {
+    transform: translateY(-130px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -116,3 +418,57 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+@keyframes room-scan {
+  from {
+    transform: translateY(-120%);
+  }
+  to {
+    transform: translateY(420%);
+  }
+}
+
+.room-ring {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.room-navlink::after {
+  content: "";
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.55rem;
+  left: 0.75rem;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 180ms ease;
+}
+
+.room-shield .room-check {
+  transition: transform 180ms ease;
+}
+
+.room-shield:hover .room-check,
+.room-shield:focus-visible .room-check {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .room-scan {
+    animation: room-scan 0.7s ease-out 1;
+  }
+
+  .room-ring.is-on {
+    stroke-dashoffset: 1;
+    animation: room-ring 0.9s ease forwards;
+  }
+}
+
+@keyframes room-ring {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+

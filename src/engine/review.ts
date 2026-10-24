@@ -14,16 +14,20 @@ import { applyEvidenceGate } from "@/engine/evidence-gate";
 import { checkFactualClaims } from "@/engine/facts";
 import { createId } from "@/engine/ids";
 import { detectTerminologyViolations } from "@/engine/terminology";
+import { passagesFor } from "@/engine/retrieval";
+import { detectVisualMismatches } from "@/engine/visual";
 
 export type ReviewEngineResult =
   | { ok: true; review: ContentReview; snapshot: RetrievalSnapshot }
   | { ok: false; error: string; review?: ContentReview };
 
 function buildSnapshot(kit: BrandKit): RetrievalSnapshot {
+  const sourceIds = kit.sources.map((source) => source.id);
   return {
     id: createId("snap"),
     kitVersion: kit.version,
-    sourceIds: kit.sources.map((s) => s.id),
+    sourceIds,
+    passages: passagesFor(kit, sourceIds),
     createdAt: new Date().toISOString(),
   };
 }
@@ -38,8 +42,8 @@ function sortFindings(findings: Finding[]): Finding[] {
 }
 
 /**
- * Deterministic hybrid pass (validators only for Phase 1).
- * LLM adapter is intentionally not wired yet.
+ * Deterministic validators. The model pass, when configured, runs later
+ * in `runHybridReview` and cannot set `approved`.
  */
 export function runDeterministicReview(
   input: unknown,
@@ -71,6 +75,7 @@ export function runDeterministicReview(
       ...detectTerminologyViolations(reviewId, data.body, parsedKit.data),
       ...detectPromotionalClaims(reviewId, data.body, parsedKit.data),
       ...checkFactualClaims(reviewId, data.body, parsedKit.data),
+      ...detectVisualMismatches(reviewId, data.body, parsedKit.data),
     ];
 
     const gated = applyEvidenceGate(rawFindings, snapshot);
@@ -136,6 +141,13 @@ export function applySuggestionDecision(
   if (finding.suggestion.accepted !== null) {
     throw new Error("Suggestion already decided");
   }
+  if (
+    review.status === "approved" ||
+    review.status === "rejected" ||
+    review.status === "engine_error"
+  ) {
+    throw new Error("This review can no longer accept suggestion decisions");
+  }
 
   const now = new Date().toISOString();
   const accepted = decision === "accept";
@@ -166,6 +178,6 @@ export function applySuggestionDecision(
     findings,
     revisions,
     updatedAt: now,
-    status: accepted ? "needs_revision" : review.status,
+    status: review.status,
   });
 }

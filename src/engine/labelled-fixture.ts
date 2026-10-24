@@ -33,6 +33,13 @@ export const LabelledReviewFixtureSchema = z.object({
   notes: z.string().optional(),
   expected: z.array(ExpectedFindingSchema).default([]),
   expectNoBlockers: z.boolean().optional(),
+  /** Statuses that must not appear. Used when absence is the ground truth. */
+  absentStatuses: z.array(ClaimStatusSchema).optional(),
+  /**
+   * The expected array is the full finding set. Extra findings count
+   * against precision. Omit this when the label set is partial.
+   */
+  exhaustive: z.boolean().optional(),
   forgedCitationProbe: ForgedCitationProbeSchema.optional(),
 });
 

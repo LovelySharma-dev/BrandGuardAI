@@ -154,6 +154,11 @@ export const DEMO_BRAND_KIT: BrandKit = {
       requiresEvidence: true,
     },
   ],
+  colorTokens: [
+    { id: "color_background", name: "Stone", hex: "#F7F5F2", role: "background" },
+    { id: "color_foreground", name: "Ink", hex: "#1A1814", role: "foreground" },
+    { id: "color_accent", name: "Bronze", hex: "#9A5B12", role: "accent" },
+  ],
 };
 
 export const DEMO_ORG = {

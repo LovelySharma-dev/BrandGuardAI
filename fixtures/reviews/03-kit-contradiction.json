@@ -9,6 +9,7 @@
     "mustKeep": []
   },
   "kitVersion": "1.0.0",
+  "exhaustive": true,
   "notes": "Contradicts the approved 2019 founding fact. This is not an unsupported gap.",
   "expected": [
     {

@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { KitDraftEditor } from "@/components/knowledge/kit-draft-editor";
+import { PdfFactImport } from "@/components/knowledge/pdf-fact-import";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -8,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { FOUNDING_FACT_ID, getDraftBrandKit, getPublishedBrandKit } from "@/db/brand-kits";
 import { requireUser } from "@/lib/session";
 
@@ -29,113 +29,153 @@ export default async function KnowledgePage() {
     );
   }
 
-  const founding = kit.facts.find((fact) => fact.id === FOUNDING_FACT_ID);
-  const draftFounding = draft?.facts.find((fact) => fact.id === FOUNDING_FACT_ID);
-
   return (
     <AppShell
       title="Brand Knowledge"
       description={`${kit.name} · published v${kit.version}. Reviews pin this version.`}
     >
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="shadow-none">
-          <CardHeader>
-            <CardTitle>Approved facts</CardTitle>
-            <CardDescription>
-              Published v{kit.version}. A draft edit does not change facts on
-              this version.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            {kit.facts.map((fact) => (
-              <div key={fact.id} className="rounded-md border border-border p-3">
-                <p className="font-serif text-sm leading-relaxed">
-                  {fact.statement}
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {fact.id} · source {fact.sourceId}
-                </p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-none">
-          <CardHeader>
-            <CardTitle>Evidence sources</CardTitle>
-            <CardDescription>
-              Snapshot membership is the authority for citations.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {kit.sources.map((src) => (
-              <div key={src.id} className="rounded-md border border-border p-3">
-                <p className="text-sm font-medium">{src.title}</p>
-                <p className="mt-1 font-serif text-sm text-muted-foreground">
-                  {src.excerpt}
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">{src.id}</p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-none lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Terminology & claim policies</CardTitle>
-            <CardDescription>
-              Deterministic validators emit <code>policy_hit</code> or{" "}
-              <code>unsupported</code> — never <code>verified</code> from a
-              keyword match alone.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6 md:grid-cols-2">
-            <div>
-              <h3 className="mb-2 text-sm font-semibold">Term rules</h3>
-              <ul className="flex flex-col gap-2">
-                {kit.termRules.map((rule) => (
-                  <li
-                    key={rule.id}
-                    className="flex flex-wrap items-center gap-2 text-sm"
-                  >
-                    <Badge variant="outline">{rule.severity}</Badge>
-                    <span>{rule.message}</span>
-                  </li>
-                ))}
-              </ul>
+      <div className="flex flex-col gap-8">
+        {user.role === "admin" ? (
+          <section className="flex flex-col gap-3">
+            <div className="max-w-2xl">
+              <h2 className="font-heading text-lg font-semibold">Draft kit</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Open one row to edit it. Publishing freezes the next version and
+                leaves v{kit.version} in place.
+              </p>
             </div>
-            <div>
-              <h3 className="mb-2 text-sm font-semibold">Claim policies</h3>
-              <ul className="flex flex-col gap-2">
-                {kit.claimPolicies.map((policy) => (
-                  <li key={policy.id} className="text-sm">
-                    <span className="font-medium">“{policy.pattern}”</span>
-                    <Separator className="my-2" />
-                    <span className="text-muted-foreground">
-                      {policy.message}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
+            <KitDraftEditor
+              key={`${draft?.version ?? "none"}:${kit.version}`}
+              publishedVersion={kit.version}
+              draftVersion={draft?.version ?? null}
+              lockedFactId={FOUNDING_FACT_ID}
+              sources={(draft ?? kit).sources.map((source) => ({
+                id: source.id,
+                title: source.title,
+              }))}
+              initialFacts={(draft ?? kit).facts.map((fact) => ({
+                id: fact.id,
+                statement: fact.statement,
+                keywords: fact.keywords.join(", "),
+                phrases: fact.contradictingPhrases.join(", "),
+                sourceId: fact.sourceId,
+              }))}
+              initialTerms={(draft ?? kit).termRules.map((rule) => ({
+                id: rule.id,
+                type: rule.type,
+                terms: rule.terms.join(", "),
+                replacement: rule.preferredReplacement ?? "",
+                severity: rule.severity,
+                message: rule.message,
+                enabled: rule.enabled,
+              }))}
+              initialPolicies={(draft ?? kit).claimPolicies.map((policy) => ({
+                id: policy.id,
+                pattern: policy.pattern,
+                severity: policy.severity,
+                message: policy.message,
+                enabled: policy.enabled,
+              }))}
+            />
+          </section>
+        ) : null}
 
-        {user.role === "admin" && founding ? (
-          <Card className="shadow-none lg:col-span-2">
+        <section className="grid gap-8 lg:grid-cols-2">
+          <div>
+            <h2 className="font-heading text-lg font-semibold">Published facts</h2>
+            <p className="mt-1 mb-3 text-sm text-muted-foreground">
+              v{kit.version}. Reviews pin these statements.
+            </p>
+            <ul className="divide-y divide-border border-y border-border">
+              {kit.facts.map((fact) => (
+                <li key={fact.id} className="py-3">
+                  <p className="font-serif text-[15px] leading-relaxed">{fact.statement}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {kit.sources.find((source) => source.id === fact.sourceId)?.title ??
+                      fact.sourceId}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h2 className="font-heading text-lg font-semibold">Sources</h2>
+            <p className="mt-1 mb-3 text-sm text-muted-foreground">
+              A citation counts only when its id is in the review snapshot.
+            </p>
+            <ul className="divide-y divide-border border-y border-border">
+              {kit.sources.map((src) => (
+                <li key={src.id} className="py-3">
+                  <p className="text-sm font-medium">{src.title}</p>
+                  <p className="mt-1 font-serif text-sm leading-relaxed text-muted-foreground">
+                    {src.excerpt}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="grid gap-8 lg:grid-cols-2">
+          <div>
+            <h2 className="font-heading text-lg font-semibold">Term rules</h2>
+            <ul className="mt-3 divide-y divide-border border-y border-border">
+              {kit.termRules.map((rule) => (
+                <li key={rule.id} className="flex items-start justify-between gap-4 py-3">
+                  <span className="text-sm leading-relaxed">{rule.message}</span>
+                  <Badge variant="outline">{rule.severity}</Badge>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h2 className="font-heading text-lg font-semibold">Claim policies</h2>
+            <ul className="mt-3 divide-y divide-border border-y border-border">
+              {kit.claimPolicies.map((policy) => (
+                <li key={policy.id} className="py-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="font-serif text-[15px]">“{policy.pattern}”</p>
+                    <Badge variant="outline">{policy.severity}</Badge>
+                  </div>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {policy.message}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {user.role === "admin" ? (
+          <Card className="shadow-none">
             <CardHeader>
-              <CardTitle>Edit draft</CardTitle>
+              <CardTitle>Import a brand PDF</CardTitle>
               <CardDescription>
-                Admin only. Publishing freezes the next version. It does not
-                rewrite v{kit.version}.
+                Read sentences into the draft. Publishing is still separate.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <KitDraftEditor
-                publishedVersion={kit.version}
-                draftVersion={draft?.version ?? null}
-                initialStatement={draftFounding?.statement ?? founding.statement}
-              />
+            <CardContent className="flex flex-col gap-4">
+              {kit.colorTokens.length > 0 ? (
+                <ul className="flex flex-wrap gap-3 text-sm">
+                  {kit.colorTokens.map((token) => (
+                    <li key={token.id} className="flex items-center gap-2">
+                      <span
+                        className="size-4 rounded-sm border border-border"
+                        style={{ backgroundColor: token.hex }}
+                        aria-hidden
+                      />
+                      <span>
+                        {token.name} {token.hex}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  This kit has no color tokens, so contrast checks are skipped.
+                </p>
+              )}
+              <PdfFactImport />
             </CardContent>
           </Card>
         ) : null}

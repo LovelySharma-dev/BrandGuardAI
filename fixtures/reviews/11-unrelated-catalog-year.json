@@ -1,0 +1,16 @@
+{
+  "id": "unrelated-catalog-year",
+  "title": "A catalog year and the words design teams",
+  "body": "The 2019 catalog lists spring colors for design teams.",
+  "intent": {
+    "goal": "Check that a nearby year and a customer noun are not treated as approved facts.",
+    "audience": "Brand team",
+    "channel": "Website",
+    "mustKeep": []
+  },
+  "kitVersion": "1.0.0",
+  "notes": "2019 and design teams appear, but the draft does not assert the founding date or the approved customer figure. This label is not exhaustive: it only requires those two statuses to stay absent.",
+  "expectNoBlockers": true,
+  "absentStatuses": ["verified", "contradicted"],
+  "expected": []
+}

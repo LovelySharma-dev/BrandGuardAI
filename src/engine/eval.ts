@@ -17,6 +17,23 @@ import {
 } from "@/engine/labelled-fixture";
 import { runDeterministicReview } from "@/engine/review";
 
+export type StatusCount = Record<string, number>;
+
+export type ConfusionCell = {
+  expected: string;
+  actual: string;
+  count: number;
+};
+
+export type ClassMetric = {
+  status: string;
+  expected: number;
+  matched: number;
+  recall: number | null;
+  predicted?: number;
+  precision?: number | null;
+};
+
 export type FixtureScore = {
   id: string;
   ok: boolean;
@@ -25,6 +42,11 @@ export type FixtureScore = {
   expectationsMet: number;
   /** Citation ids that remained on a rendered finding outside the snapshot. */
   forgedCitationsAccepted: string[];
+  exhaustive: boolean;
+  statusExpected: StatusCount;
+  statusMatched: StatusCount;
+  statusPredicted: StatusCount;
+  confusion: Array<{ expected: string; actual: string }>;
 };
 
 export type EvalReport = {
@@ -36,6 +58,11 @@ export type EvalReport = {
   expectationsChecked: number;
   expectationsMet: number;
   forgedCitationsAccepted: number;
+  /** Recall over labelled expectations. Not a binary accuracy score. */
+  classRecall: ClassMetric[];
+  /** Precision only where fixtures declare an exhaustive label set. */
+  exhaustivePrecision: ClassMetric[];
+  confusion: ConfusionCell[];
   scores: FixtureScore[];
   note: string;
 };
@@ -49,6 +76,9 @@ function unmeasured(note: string): EvalReport {
     expectationsChecked: 0,
     expectationsMet: 0,
     forgedCitationsAccepted: 0,
+    classRecall: [],
+    exhaustivePrecision: [],
+    confusion: [],
     scores: [],
     note,
   };
@@ -91,6 +121,33 @@ function forgedCitationsOn(
     }
   }
   return forged;
+}
+
+function emptyScoreFields(): Pick<
+  FixtureScore,
+  "exhaustive" | "statusExpected" | "statusMatched" | "statusPredicted" | "confusion"
+> {
+  return {
+    exhaustive: false,
+    statusExpected: {},
+    statusMatched: {},
+    statusPredicted: {},
+    confusion: [],
+  };
+}
+
+function bump(counts: StatusCount, status: string): void {
+  counts[status] = (counts[status] ?? 0) + 1;
+}
+
+function sameIdentity(finding: Finding, expected: ExpectedFinding): boolean {
+  if (expected.ruleId && finding.ruleId === expected.ruleId) return true;
+  if (expected.matchedText) {
+    const needle = expected.matchedText.toLowerCase();
+    const haystack = `${finding.matchedText ?? ""} ${finding.summary}`.toLowerCase();
+    return haystack.includes(needle);
+  }
+  return false;
 }
 
 function expectationLabel(expected: ExpectedFinding, index: number): string {
@@ -150,6 +207,7 @@ export function scoreLabelledFixture(
       expectationsChecked: 0,
       expectationsMet: 0,
       forgedCitationsAccepted: [],
+      ...emptyScoreFields(),
     };
   }
 
@@ -164,6 +222,7 @@ export function scoreLabelledFixture(
       expectationsChecked: fixture.expected.length,
       expectationsMet: 0,
       forgedCitationsAccepted: [],
+      ...emptyScoreFields(),
     };
   }
 
@@ -186,6 +245,7 @@ export function scoreLabelledFixture(
       expectationsChecked: fixture.expected.length,
       expectationsMet: 0,
       forgedCitationsAccepted: [],
+      ...emptyScoreFields(),
     };
   }
 
@@ -197,18 +257,47 @@ export function scoreLabelledFixture(
 
   const used = new Set<number>();
   let expectationsMet = 0;
+  const statusExpected: StatusCount = {};
+  const statusMatched: StatusCount = {};
+  const confusion: Array<{ expected: string; actual: string }> = [];
   fixture.expected.forEach((expected, index) => {
+    bump(statusExpected, expected.status);
     const matchAt = result.review.findings.findIndex(
       (finding, findingIndex) =>
         !used.has(findingIndex) && findingMatches(finding, expected),
     );
     if (matchAt === -1) {
+      const confusedAt = result.review.findings.findIndex(
+        (finding, findingIndex) =>
+          !used.has(findingIndex) &&
+          finding.status !== expected.status &&
+          sameIdentity(finding, expected),
+      );
+      if (confusedAt !== -1) {
+        const actual = result.review.findings[confusedAt]?.status ?? "missing";
+        confusion.push({ expected: expected.status, actual });
+        used.add(confusedAt);
+        failures.push(
+          `${expectationLabel(expected, index)} was ${actual} instead`,
+        );
+        return;
+      }
       failures.push(`${expectationLabel(expected, index)} was not produced`);
       return;
     }
     used.add(matchAt);
     expectationsMet += 1;
+    bump(statusMatched, expected.status);
   });
+
+  const statusPredicted: StatusCount = {};
+  result.review.findings.forEach((finding) => bump(statusPredicted, finding.status));
+
+  for (const status of fixture.absentStatuses ?? []) {
+    if (result.review.findings.some((finding) => finding.status === status)) {
+      failures.push(`Status ${status} was produced and should have been absent`);
+    }
+  }
 
   if (
     fixture.expectNoBlockers &&
@@ -234,6 +323,11 @@ export function scoreLabelledFixture(
     expectationsChecked: fixture.expected.length,
     expectationsMet,
     forgedCitationsAccepted: forged,
+    exhaustive: fixture.exhaustive === true,
+    statusExpected,
+    statusMatched,
+    statusPredicted,
+    confusion,
   };
 }
 
@@ -269,6 +363,7 @@ export function scoreFixtureDirectory(
         expectationsChecked: 0,
         expectationsMet: 0,
         forgedCitationsAccepted: [],
+        ...emptyScoreFields(),
       } satisfies FixtureScore;
     }
     return scoreLabelledFixture(raw, kit);
@@ -293,7 +388,80 @@ export function scoreFixtureDirectory(
       (count, score) => count + score.forgedCitationsAccepted.length,
       0,
     ),
+    ...summarizeClassMetrics(scores),
     scores,
-    note: "Counts are expectation matches on the deterministic engine. Precision and recall are not computed from a partial label set.",
+    note: "Recall is the share of labelled expectations that matched, by status. Precision is calculated only for fixtures marked exhaustive. An unlabelled finding is not treated as a false positive.",
+  };
+}
+
+function rate(matched: number, total: number): number | null {
+  if (total === 0) return null;
+  return matched / total;
+}
+
+function summarizeClassMetrics(scores: FixtureScore[]): {
+  classRecall: ClassMetric[];
+  exhaustivePrecision: ClassMetric[];
+  confusion: ConfusionCell[];
+} {
+  const expected: StatusCount = {};
+  const matched: StatusCount = {};
+  const exhaustiveExpected: StatusCount = {};
+  const exhaustiveMatched: StatusCount = {};
+  const exhaustivePredicted: StatusCount = {};
+  const confusion = new Map<string, ConfusionCell>();
+
+  for (const score of scores) {
+    for (const [status, count] of Object.entries(score.statusExpected)) {
+      expected[status] = (expected[status] ?? 0) + count;
+    }
+    for (const [status, count] of Object.entries(score.statusMatched)) {
+      matched[status] = (matched[status] ?? 0) + count;
+    }
+    if (score.exhaustive) {
+      for (const [status, count] of Object.entries(score.statusExpected)) {
+        exhaustiveExpected[status] = (exhaustiveExpected[status] ?? 0) + count;
+      }
+      for (const [status, count] of Object.entries(score.statusMatched)) {
+        exhaustiveMatched[status] = (exhaustiveMatched[status] ?? 0) + count;
+      }
+      for (const [status, count] of Object.entries(score.statusPredicted)) {
+        exhaustivePredicted[status] = (exhaustivePredicted[status] ?? 0) + count;
+      }
+    }
+    for (const cell of score.confusion) {
+      const key = `${cell.expected}->${cell.actual}`;
+      const current = confusion.get(key) ?? {
+        expected: cell.expected,
+        actual: cell.actual,
+        count: 0,
+      };
+      current.count += 1;
+      confusion.set(key, current);
+    }
+  }
+
+  const statuses = [...new Set([...Object.keys(expected), ...Object.keys(matched)])].sort();
+  return {
+    classRecall: statuses.map((status) => ({
+      status,
+      expected: expected[status] ?? 0,
+      matched: matched[status] ?? 0,
+      recall: rate(matched[status] ?? 0, expected[status] ?? 0),
+    })),
+    exhaustivePrecision: [...new Set([
+      ...Object.keys(exhaustiveExpected),
+      ...Object.keys(exhaustivePredicted),
+    ])]
+      .sort()
+      .map((status) => ({
+        status,
+        expected: exhaustiveExpected[status] ?? 0,
+        matched: exhaustiveMatched[status] ?? 0,
+        predicted: exhaustivePredicted[status] ?? 0,
+        recall: rate(exhaustiveMatched[status] ?? 0, exhaustiveExpected[status] ?? 0),
+        precision: rate(exhaustiveMatched[status] ?? 0, exhaustivePredicted[status] ?? 0),
+      })),
+    confusion: [...confusion.values()],
   };
 }

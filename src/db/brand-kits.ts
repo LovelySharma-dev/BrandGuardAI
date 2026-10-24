@@ -1,4 +1,4 @@
-import type { PGlite } from "@electric-sql/pglite";
+import type { AppDatabase } from "@/db/sql";
 
 import { BrandKitSchema, type BrandKit } from "@/domain/schemas";
 import { getDb } from "@/db/client";
@@ -121,7 +121,7 @@ export async function publishDraftBrandKit(
 }
 
 export async function insertPublishedBrandKit(
-  db: PGlite,
+  db: AppDatabase,
   kit: BrandKit,
   publishedAt: string,
 ): Promise<void> {

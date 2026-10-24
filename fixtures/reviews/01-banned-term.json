@@ -9,6 +9,7 @@
     "mustKeep": []
   },
   "kitVersion": "1.0.0",
+  "exhaustive": true,
   "notes": "Banned term from the published terminology guide. The hit cites src_term_guide.",
   "expected": [
     {

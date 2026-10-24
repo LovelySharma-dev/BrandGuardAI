@@ -9,6 +9,7 @@
     "mustKeep": []
   },
   "kitVersion": "1.0.0",
+  "exhaustive": true,
   "notes": "Kit 1.0.0 flags the absolute pattern “best in the world” as unsupported. No citation is attached.",
   "expected": [
     {

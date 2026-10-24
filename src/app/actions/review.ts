@@ -1,30 +1,34 @@
 "use server";
 
 import { getPublishedBrandKit } from "@/db/brand-kits";
-import type { ContentReview, ReviewInput } from "@/domain/schemas";
+import type { ContentReview, RetrievalSnapshot, ReviewInput } from "@/domain/schemas";
 import { ReviewInputSchema } from "@/domain/schemas";
-import {
-  applySuggestionDecision,
-  runDeterministicReview,
-} from "@/engine/review";
+import { runHybridReview } from "@/engine/hybrid";
+import { applySuggestionDecision } from "@/engine/review";
 import { appendAuditEvent, getReview, listReviews, saveReview } from "@/db/repository";
+import { consumeRateLimit, reviewSubmitLimit } from "@/lib/rate-limit";
 import { requireUser } from "@/lib/session";
 import { transitionReview } from "@/lib/transition-review";
 
 export type ActionResult<T> =
-  | { ok: true; data: T }
+  | { ok: true; data: T; snapshot?: RetrievalSnapshot }
   | { ok: false; error: string };
 
 export async function submitReviewAction(
   input: ReviewInput,
 ): Promise<ActionResult<ContentReview>> {
   const user = await requireUser();
+  const limited = await consumeRateLimit({
+    bucket: `review:${user.id}`,
+    limit: reviewSubmitLimit(),
+  });
+  if (!limited.ok) return limited;
   const parsed = ReviewInputSchema.parse(input);
   const kit = await getPublishedBrandKit(user.orgId);
   if (!kit) {
     return { ok: false, error: "No published brand kit for this organisation" };
   }
-  const result = runDeterministicReview(
+  const result = await runHybridReview(
     { ...parsed, orgId: user.orgId },
     kit,
   );
@@ -35,7 +39,11 @@ export async function submitReviewAction(
     return { ok: false, error: result.error };
   }
 
-  const review = { ...result.review, orgId: user.orgId };
+  const review = {
+    ...result.review,
+    orgId: user.orgId,
+    createdBy: user.id,
+  };
   await saveReview(review, result.snapshot);
   await appendAuditEvent({
     orgId: user.orgId,
@@ -48,10 +56,11 @@ export async function submitReviewAction(
       findingCount: review.findings.length,
       kitVersion: review.kitVersion,
       snapshotId: result.snapshot.id,
+      modelOutcome: review.modelMeta?.outcome ?? "skipped",
     },
   });
 
-  return { ok: true, data: review };
+  return { ok: true, data: review, snapshot: result.snapshot };
 }
 
 export async function decideSuggestionAction(

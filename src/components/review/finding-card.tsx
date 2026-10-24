@@ -31,6 +31,16 @@ const STATUS_LABEL: Record<Finding["status"], string> = {
   suggestion_only: "Suggestion",
 };
 
+const STATUS_NOTE: Record<Finding["status"], string> = {
+  verified: "An approved source from this review's kit version supports the claim.",
+  contradicted: "An approved source conflicts with this claim.",
+  unsupported:
+    "No approved source covers this claim. That is an evidence gap, not a contradiction.",
+  indeterminate: "Retrieved material does not support a firm conclusion.",
+  policy_hit: "This matches a configured brand rule.",
+  suggestion_only: "Editorial advice. This is not a factual verdict.",
+};
+
 function StatusIcon({ status }: { status: Finding["status"] }) {
   const common = "size-4 shrink-0";
   switch (status) {
@@ -97,6 +107,7 @@ export function FindingCard({
             </Badge>
           </div>
         </div>
+        <p className="text-xs text-muted-foreground">{STATUS_NOTE[finding.status]}</p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 pt-4">
         <p className="text-sm leading-relaxed text-foreground/90">

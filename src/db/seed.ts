@@ -1,4 +1,4 @@
-import type { PGlite } from "@electric-sql/pglite";
+import type { AppDatabase } from "@/db/sql";
 
 import { insertPublishedBrandKit } from "@/db/brand-kits";
 import { DEMO_BRAND_KIT } from "@/data/seed-kit";
@@ -54,17 +54,17 @@ function passwordHash(): Promise<string> {
   return demoHash;
 }
 
-export async function seedDatabase(db: PGlite): Promise<void> {
+export async function seedDatabase(db: AppDatabase): Promise<void> {
   const existing = await db.query<{ count: number }>(
     "SELECT count(*)::int AS count FROM users",
   );
-  if (Number(existing.rows[0]?.count ?? 0) === 0) {
-    await seedAccounts(db);
-  }
+  const empty = Number(existing.rows[0]?.count ?? 0) === 0;
+  if (empty && process.env.NODE_ENV === "production") return;
+  if (empty) await seedAccounts(db);
   await seedPublishedKits(db);
 }
 
-async function seedAccounts(db: PGlite): Promise<void> {
+async function seedAccounts(db: AppDatabase): Promise<void> {
 
   for (const org of ORGS) {
     await db.query(
@@ -123,14 +123,23 @@ async function seedAccounts(db: PGlite): Promise<void> {
   );
 }
 
-async function seedPublishedKits(db: PGlite): Promise<void> {
+async function seedPublishedKits(db: AppDatabase): Promise<void> {
   const publishedAt = "2026-01-01T00:00:00.000Z";
   for (const orgId of ["org_demo", "org_other"] as const) {
     const existing = await db.query<{ id: string }>(
       "SELECT id FROM brand_kits WHERE org_id = $1 AND version = '1.0.0'",
       [orgId],
     );
-    if (existing.rows.length > 0) continue;
+    if (existing.rows.length > 0) {
+      await db.query(
+        `UPDATE brand_kits
+         SET document = jsonb_set(document, '{colorTokens}', $1::jsonb, true)
+         WHERE id = $2
+           AND COALESCE(jsonb_array_length(document->'colorTokens'), 0) = 0`,
+        [JSON.stringify(DEMO_BRAND_KIT.colorTokens), existing.rows[0].id],
+      );
+      continue;
+    }
     await insertPublishedBrandKit(db,
       {
         ...structuredClone(DEMO_BRAND_KIT),

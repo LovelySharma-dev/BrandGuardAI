@@ -1,0 +1,28 @@
+{
+  "id": "conflicting-founding",
+  "title": "Supported sentence beside a conflicting sentence",
+  "body": "Inkloom was founded in 2019. Later copy says founded in 2015.",
+  "intent": {
+    "goal": "Keep both the supported fact and the conflict visible.",
+    "audience": "Brand team",
+    "channel": "Website",
+    "mustKeep": []
+  },
+  "kitVersion": "1.0.0",
+  "exhaustive": true,
+  "notes": "Conflicting sources must not collapse into one certain verdict. The approved sentence stays verified and the conflicting sentence stays contradicted.",
+  "expected": [
+    {
+      "matchedText": "Inkloom was founded in 2019",
+      "status": "verified",
+      "ruleId": "fact_founded_2019",
+      "citationIds": ["src_fact_founded"]
+    },
+    {
+      "matchedText": "founded in 2015",
+      "status": "contradicted",
+      "ruleId": "fact_founded_2019",
+      "citationIds": ["src_fact_founded"]
+    }
+  ]
+}

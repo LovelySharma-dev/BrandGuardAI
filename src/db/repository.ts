@@ -32,6 +32,9 @@ type ReviewRow = {
   findings: unknown;
   revisions: unknown;
   error_message: string | null;
+  model_meta: unknown;
+  created_by: string | null;
+  decision: unknown;
   created_at: string | Date;
   updated_at: string | Date;
 };
@@ -58,6 +61,9 @@ function toReview(row: ReviewRow): ContentReview {
     findings: asJson(row.findings),
     revisions: asJson(row.revisions),
     errorMessage: row.error_message ?? undefined,
+    modelMeta: row.model_meta ? asJson(row.model_meta) : undefined,
+    createdBy: row.created_by ?? undefined,
+    decision: row.decision ? asJson(row.decision) : undefined,
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at),
   });
@@ -177,14 +183,15 @@ export async function saveReview(
       throw new Error("Snapshot id does not match the review");
     }
     await db.query(
-      `INSERT INTO snapshots (id, org_id, kit_version, source_ids, created_at)
-       VALUES ($1, $2, $3, $4::jsonb, $5)
+      `INSERT INTO snapshots (id, org_id, kit_version, source_ids, passages, created_at)
+       VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6)
        ON CONFLICT (id) DO NOTHING`,
       [
         snap.id,
         parsed.orgId,
         snap.kitVersion,
         JSON.stringify(snap.sourceIds),
+        snap.passages ? JSON.stringify(snap.passages) : null,
         snap.createdAt,
       ],
     );
@@ -193,10 +200,10 @@ export async function saveReview(
   await db.query(
     `INSERT INTO reviews (
        id, org_id, title, body, intent, status, kit_version, snapshot_id,
-       findings, revisions, error_message, created_at, updated_at
+       findings, revisions, error_message, model_meta, created_by, created_at, updated_at
      ) VALUES (
        $1, $2, $3, $4, $5::jsonb, $6, $7, $8,
-       $9::jsonb, $10::jsonb, $11, $12, $13
+       $9::jsonb, $10::jsonb, $11, $12::jsonb, $13, $14, $15
      )
      ON CONFLICT (id) DO UPDATE SET
        title = EXCLUDED.title,
@@ -208,6 +215,8 @@ export async function saveReview(
        findings = EXCLUDED.findings,
        revisions = EXCLUDED.revisions,
        error_message = EXCLUDED.error_message,
+       model_meta = EXCLUDED.model_meta,
+       created_by = COALESCE(reviews.created_by, EXCLUDED.created_by),
        updated_at = EXCLUDED.updated_at
      WHERE reviews.org_id = EXCLUDED.org_id`,
     [
@@ -222,10 +231,69 @@ export async function saveReview(
       JSON.stringify(parsed.findings),
       JSON.stringify(parsed.revisions),
       parsed.errorMessage ?? null,
+      parsed.modelMeta ? JSON.stringify(parsed.modelMeta) : null,
+      parsed.createdBy ?? null,
       parsed.createdAt,
       parsed.updatedAt,
     ],
   );
+}
+
+/**
+ * Applies a status change and its audit row in one statement.
+ * A lost race updates nothing and writes no audit event.
+ */
+export async function commitReviewTransition(input: {
+  review: ContentReview;
+  expectedStatus: string;
+  audit: Omit<AuditEvent, "id" | "at"> & { at?: string };
+}): Promise<{ ok: true; auditId: string } | { ok: false }> {
+  const parsed = ContentReviewSchema.parse(input.review);
+  const audit = AuditEventSchema.parse({
+    id: createId("audit"),
+    at: input.audit.at ?? new Date().toISOString(),
+    orgId: input.audit.orgId,
+    actorId: input.audit.actorId,
+    action: input.audit.action,
+    entityType: input.audit.entityType,
+    entityId: input.audit.entityId,
+    before: input.audit.before,
+    after: input.audit.after,
+  });
+  const db = await getDb();
+  const result = await db.query<{ id: string }>(
+    `WITH updated AS (
+       UPDATE reviews
+       SET status = $4,
+           updated_at = $5,
+           decision = $6::jsonb
+       WHERE id = $1 AND org_id = $2 AND status = $3
+       RETURNING id, org_id
+     )
+     INSERT INTO audit_events (
+       id, org_id, actor_id, action, entity_type, entity_id, before, after, at
+     )
+     SELECT $7, updated.org_id, $8, $9, $10, updated.id, $11::jsonb, $12::jsonb, $13
+     FROM updated
+     RETURNING id`,
+    [
+      parsed.id,
+      parsed.orgId,
+      input.expectedStatus,
+      parsed.status,
+      parsed.updatedAt,
+      parsed.decision ? JSON.stringify(parsed.decision) : null,
+      audit.id,
+      audit.actorId,
+      audit.action,
+      audit.entityType,
+      JSON.stringify(audit.before ?? null),
+      JSON.stringify(audit.after ?? null),
+      audit.at,
+    ],
+  );
+  const row = result.rows[0];
+  return row ? { ok: true, auditId: row.id } : { ok: false };
 }
 
 export async function getReview(
@@ -259,9 +327,10 @@ export async function getSnapshot(
     id: string;
     kit_version: string;
     source_ids: unknown;
+    passages: unknown;
     created_at: string | Date;
   }>(
-    "SELECT id, kit_version, source_ids, created_at FROM snapshots WHERE id = $1 AND org_id = $2",
+    "SELECT id, kit_version, source_ids, passages, created_at FROM snapshots WHERE id = $1 AND org_id = $2",
     [id, orgId],
   );
   const row = result.rows[0];
@@ -270,6 +339,7 @@ export async function getSnapshot(
     id: row.id,
     kitVersion: row.kit_version,
     sourceIds: asJson(row.source_ids),
+    passages: row.passages ? asJson(row.passages) : undefined,
     createdAt: iso(row.created_at),
   });
 }

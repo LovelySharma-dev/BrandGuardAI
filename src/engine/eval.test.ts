@@ -5,6 +5,10 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { DEMO_BRAND_KIT } from "@/data/seed-kit";
 import { scoreFixtureDirectory, scoreLabelledFixture } from "@/engine/eval";
+import {
+  formatEvaluationSummary,
+  runIntegrityBenchmark,
+} from "@/engine/integrity-benchmark";
 
 const tempDirs: string[] = [];
 
@@ -165,6 +169,31 @@ describe("scoreFixtureDirectory", () => {
       "File is not valid JSON",
     ]);
     expect(report.forgedCitationsAccepted).toBe(0);
-    expect(report.note).toMatch(/Precision and recall are not computed/);
+    expect(report.note).toMatch(/Recall is the share of labelled expectations/);
+    expect(report.classRecall).toEqual([]);
   });
+});
+
+describe("evaluation benchmark", () => {
+  it("scores the fixture pack and the integrity cases from real runs", async () => {
+    const fixtures = scoreFixtureDirectory(
+      path.join(process.cwd(), "fixtures", "reviews"),
+    );
+    const integrity = await runIntegrityBenchmark();
+    const summary = formatEvaluationSummary({
+      fixturesPassed: fixtures.passed,
+      fixturesFailed: fixtures.failed,
+      fixtureCount: fixtures.fixtureCount,
+      classRecall: fixtures.classRecall,
+      exhaustivePrecision: fixtures.exhaustivePrecision,
+      confusion: fixtures.confusion,
+      integrity,
+    });
+    console.log(`\n${summary}\n`);
+    expect(fixtures.measured).toBe(true);
+    expect(fixtures.failed).toBe(0);
+    expect(fixtures.forgedCitationsAccepted).toBe(0);
+    expect(integrity.failed).toBe(0);
+    expect(summary).toContain("Integrity cases:");
+  }, 30000);
 });

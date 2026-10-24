@@ -54,6 +54,23 @@ export const EvidenceSourceSchema = z.object({
   uri: z.string().optional(),
 });
 
+export const SourceTypeSchema = z.enum([
+  "fact",
+  "terminology",
+  "policy",
+  "upload",
+  "other",
+]);
+
+export const SnapshotPassageSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  excerpt: z.string().min(1),
+  sourceType: SourceTypeSchema,
+  /** Published kit version this excerpt was copied from. */
+  kitVersion: z.string().min(1),
+});
+
 export const ApprovedFactSchema = z.object({
   id: z.string().min(1),
   statement: z.string().min(1),
@@ -87,6 +104,13 @@ export const ClaimPolicySchema = z.object({
   requiresEvidence: z.boolean().default(true),
 });
 
+export const ColorTokenSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  hex: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  role: z.enum(["background", "foreground", "accent"]),
+});
+
 export const BrandKitSchema = z.object({
   id: z.string().min(1),
   orgId: z.string().min(1),
@@ -96,6 +120,7 @@ export const BrandKitSchema = z.object({
   facts: z.array(ApprovedFactSchema),
   termRules: z.array(TermRuleSchema),
   claimPolicies: z.array(ClaimPolicySchema),
+  colorTokens: z.array(ColorTokenSchema).default([]),
 });
 
 export const ReviewIntentSchema = z.object({
@@ -123,6 +148,18 @@ export const RetrievalSnapshotSchema = z.object({
   kitVersion: z.string().min(1),
   sourceIds: z.array(z.string()),
   createdAt: z.string(),
+  /**
+   * Excerpts copied at retrieval time. Older snapshots omit this;
+   * the evidence gate then checks ids only.
+   */
+  passages: z.array(SnapshotPassageSchema).optional(),
+});
+
+export const ReviewDecisionSchema = z.object({
+  action: z.enum(["submit", "approve", "reject", "request_changes"]),
+  reason: z.string().max(500).optional(),
+  actorId: z.string().min(1),
+  at: z.string(),
 });
 
 export const ReviewStatusSchema = z.enum([
@@ -134,6 +171,17 @@ export const ReviewStatusSchema = z.enum([
   "rejected",
   "engine_error",
 ]);
+
+export const FINDING_SCHEMA_VERSION = "finding_schema_v1" as const;
+
+export const ModelMetaSchema = z.object({
+  provider: z.string().min(1),
+  model: z.string().min(1),
+  schemaVersion: z.literal(FINDING_SCHEMA_VERSION),
+  outcome: z.enum(["completed", "skipped", "failed"]),
+  reason: z.string().optional(),
+  retrievedSourceCount: z.number().int().nonnegative(),
+});
 
 export const ContentReviewSchema = z.object({
   id: z.string().min(1),
@@ -156,6 +204,10 @@ export const ContentReviewSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   errorMessage: z.string().optional(),
+  modelMeta: ModelMetaSchema.optional(),
+  /** User who submitted the review. Absent on rows created before this field. */
+  createdBy: z.string().min(1).optional(),
+  decision: ReviewDecisionSchema.optional(),
 });
 
 export const AuditEventSchema = z.object({
@@ -181,7 +233,11 @@ export type TermRule = z.infer<typeof TermRuleSchema>;
 export type ClaimPolicy = z.infer<typeof ClaimPolicySchema>;
 export type BrandKit = z.infer<typeof BrandKitSchema>;
 export type ReviewInput = z.infer<typeof ReviewInputSchema>;
+export type SourceType = z.infer<typeof SourceTypeSchema>;
+export type SnapshotPassage = z.infer<typeof SnapshotPassageSchema>;
 export type RetrievalSnapshot = z.infer<typeof RetrievalSnapshotSchema>;
+export type ReviewDecision = z.infer<typeof ReviewDecisionSchema>;
+export type ModelMeta = z.infer<typeof ModelMetaSchema>;
 export type ContentReview = z.infer<typeof ContentReviewSchema>;
 export type ReviewStatus = z.infer<typeof ReviewStatusSchema>;
 export type AuditEvent = z.infer<typeof AuditEventSchema>;

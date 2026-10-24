@@ -8,14 +8,21 @@ import {
   decideSuggestionAction,
   submitReviewAction,
 } from "@/app/actions/review";
+import { EvidenceTrustPanel } from "@/components/review/evidence-trust-panel";
 import { FindingCard } from "@/components/review/finding-card";
+import { modelPassNotice } from "@/engine/model-notice";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { ContentReview, EvidenceSource, Finding } from "@/domain/schemas";
+import type {
+  ContentReview,
+  EvidenceSource,
+  Finding,
+  RetrievalSnapshot,
+} from "@/domain/schemas";
 
 const SAMPLE = `Inkloom is the best in the world brand platform. Founded in 2015, we offer guaranteed approval through our AI audit. Trusted by 10,000 design teams. Use our brand bible for synergy.`;
 
@@ -40,9 +47,11 @@ function groupFindings(findings: Finding[]) {
 export function ReviewWorkspace({
   initialReview = null,
   sources = [],
+  snapshot = null,
 }: {
   initialReview?: ContentReview | null;
   sources?: EvidenceSource[];
+  snapshot?: RetrievalSnapshot | null;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState(
@@ -62,10 +71,23 @@ export function ReviewWorkspace({
     initialReview?.intent.mustKeep.join("\n") ?? "",
   );
   const [review, setReview] = useState<ContentReview | null>(initialReview);
+  const [pinnedSnapshot, setPinnedSnapshot] = useState<RetrievalSnapshot | null>(
+    snapshot,
+  );
+  const serverStamp = `${initialReview?.id ?? ""}:${initialReview?.updatedAt ?? ""}:${snapshot?.id ?? ""}`;
+  const [appliedStamp, setAppliedStamp] = useState(serverStamp);
+  if (appliedStamp !== serverStamp) {
+    setAppliedStamp(serverStamp);
+    setReview(initialReview);
+    setPinnedSnapshot(snapshot);
+  }
+  const [busyLabel, setBusyLabel] = useState("Running review…");
+  const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   async function runReview() {
+    setBusyLabel("Running review…");
     setError(null);
     try {
       const result = await submitReviewAction({
@@ -88,6 +110,7 @@ export function ReviewWorkspace({
         return;
       }
       setReview(result.data);
+      setPinnedSnapshot(result.snapshot ?? null);
       setBody(result.data.body);
       router.replace(`/reviews/${result.data.id}`);
       router.refresh();
@@ -107,6 +130,7 @@ export function ReviewWorkspace({
 
   function onDecide(suggestionId: string, decision: "accept" | "reject") {
     if (!review) return;
+    setBusyLabel("Saving the decision…");
     setError(null);
     startTransition(async () => {
       try {
@@ -121,6 +145,11 @@ export function ReviewWorkspace({
         }
         setReview(result.data);
         setBody(result.data.body);
+        setNotice(
+          decision === "accept"
+            ? `Draft updated. Approval status is still ${result.data.status.replaceAll("_", " ")}.`
+            : `Suggestion rejected. Approval status is still ${result.data.status.replaceAll("_", " ")}.`,
+        );
         router.refresh();
       } catch (cause) {
         setError(
@@ -155,10 +184,24 @@ export function ReviewWorkspace({
         </Badge>
       </div>
 
+      {!initialReview ? (
+        <p className="rounded-lg border border-dashed border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+          The draft starts with sample Inkloom copy. It is not a saved review until you run one.
+        </p>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Saved review · kit v{initialReview.kitVersion} ·{" "}
+          {initialReview.status.replaceAll("_", " ")}
+          {initialReview.decision
+            ? ` · last decision ${initialReview.decision.action.replaceAll("_", " ")}`
+            : ""}
+        </p>
+      )}
+
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
         <section
           aria-labelledby="submit-heading"
-          className="flex flex-col gap-5 rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgba(28,25,23,0.04)] sm:p-5"
+          className="flex min-w-0 flex-col gap-5 rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgba(28,25,23,0.04)] sm:p-5"
         >
           <div className="flex items-start gap-3">
             <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
@@ -269,8 +312,8 @@ export function ReviewWorkspace({
             >
               {pending ? (
                 <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden />
-                  Running review…
+                  <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden />
+                  {busyLabel}
                 </>
               ) : (
                 "Run review"
@@ -280,6 +323,12 @@ export function ReviewWorkspace({
               Checks use the published brand kit and its evidence sources.
             </p>
           </div>
+
+          {notice ? (
+            <p role="status" className="text-sm text-foreground">
+              {notice}
+            </p>
+          ) : null}
 
           {error ? (
             <Alert variant="destructive" role="alert">
@@ -291,7 +340,7 @@ export function ReviewWorkspace({
 
         <section
           aria-labelledby="findings-heading"
-          className="flex flex-col gap-4"
+          className="flex min-w-0 flex-col gap-4"
           aria-busy={pending}
         >
           <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgba(28,25,23,0.04)] sm:p-5">
@@ -323,12 +372,37 @@ export function ReviewWorkspace({
                   {review.findings.length === 1 ? "finding" : "findings"}
                 </span>
                 <span>
-                  Evidence snapshot{" "}
+                  Retrieved sources{" "}
                   <strong className="font-medium text-foreground">
-                    {review.snapshotId ? "pinned" : "unavailable"}
+                    {review.modelMeta?.retrievedSourceCount ?? "—"}
+                  </strong>
+                </span>
+                <span>
+                  Model pass{" "}
+                  <strong className="font-medium text-foreground">
+                    {review.modelMeta?.outcome ?? "not recorded"}
                   </strong>
                 </span>
               </div>
+            ) : null}
+            {review && modelPassNotice(review.modelMeta) ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {modelPassNotice(review.modelMeta)}
+              </p>
+            ) : null}
+            {review && review.revisions.length > 0 ? (
+              <ol className="mt-4 flex flex-col gap-2 border-t border-border pt-3">
+                {review.revisions.map((revision, index) => (
+                  <li key={revision.id} className="text-sm">
+                    <p className="font-medium">
+                      {revision.note ?? `Version ${index + 1}`}
+                    </p>
+                    <p className="mt-1 line-clamp-2 font-serif text-muted-foreground">
+                      {revision.body}
+                    </p>
+                  </li>
+                ))}
+              </ol>
             ) : null}
           </div>
 
@@ -352,13 +426,14 @@ export function ReviewWorkspace({
               role="status"
               className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-8 text-sm text-muted-foreground"
             >
-              <Loader2 className="size-4 animate-spin" aria-hidden />
-              Checking terms, claims, and approved facts…
+              <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden />
+              Checking the brand kit. The free model pass can take up to a minute when a key is configured. Without a key, the deterministic checks still finish.
             </div>
           ) : null}
 
           {review ? (
             <div className="flex flex-col gap-4">
+              <EvidenceTrustPanel review={review} snapshot={pinnedSnapshot} />
               {review.findings.length === 0 ? (
                 <Alert>
                   <AlertTitle>No policy or evidence issues found</AlertTitle>

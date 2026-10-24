@@ -97,7 +97,7 @@ describe("transitionReview allow-list", () => {
     async (from, action, role, to) => {
       const review = await seedReview(from);
       __setSessionIdentityForTests({ userId: ACTOR[role] });
-      const result = await transitionReview(review.id, action);
+      const result = await transitionReview(review.id, decisionFor(action));
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -113,11 +113,24 @@ describe("transitionReview allow-list", () => {
         entityType: "ContentReview",
         entityId: review.id,
         before: { status: from },
-        after: { status: to, action },
+        after: {
+          status: to,
+          action,
+          ...(action === "reject" || action === "request_changes"
+            ? { reason: "Needs a documented human reason." }
+            : {}),
+        },
       });
     },
   );
 });
+
+function decisionFor(action: ReviewAction) {
+  if (action === "reject" || action === "request_changes") {
+    return { action, reason: "Needs a documented human reason." };
+  }
+  return action;
+}
 
 describe("transitionReview denials", () => {
   it.each(ReviewStatusSchema.options)(
@@ -172,6 +185,57 @@ describe("transitionReview denials", () => {
     expect(await listAuditEvents("org_demo")).toEqual([]);
   });
 
+  it("does not write an audit row when reject has no reason", async () => {
+    const review = await seedReview("in_review");
+    __setSessionIdentityForTests({ userId: DEMO_REVIEWER_ID });
+    const result = await transitionReview(review.id, "reject");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toMatch(/reason/i);
+    expect((await getReview(review.id, "org_demo"))?.status).toBe("in_review");
+    expect(await listAuditEvents("org_demo")).toEqual([]);
+  });
+
+  it("does not let the creator approve, even with a reviewer role", async () => {
+    const review = await seedReview("in_review");
+    await saveReview({ ...review, createdBy: DEMO_REVIEWER_ID });
+    __setSessionIdentityForTests({ userId: DEMO_REVIEWER_ID });
+    const result = await transitionReview(review.id, "approve");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toMatch(/you created/i);
+    expect((await getReview(review.id, "org_demo"))?.status).toBe("in_review");
+    expect(await listAuditEvents("org_demo")).toEqual([]);
+  });
+
+  it("keeps one approval when two decisions race", async () => {
+    const review = await seedReview("in_review");
+    __setSessionIdentityForTests({ userId: DEMO_REVIEWER_ID });
+    const [first, second] = await Promise.all([
+      transitionReview(review.id, "approve"),
+      transitionReview(review.id, "approve"),
+    ]);
+    const outcomes = [first, second];
+    expect(outcomes.filter((item) => item.ok)).toHaveLength(1);
+    expect(outcomes.filter((item) => !item.ok)).toHaveLength(1);
+    expect((await getReview(review.id, "org_demo"))?.status).toBe("approved");
+    const audits = await listAuditEvents("org_demo");
+    expect(audits).toHaveLength(1);
+    expect(audits[0]?.action).toBe("review.approve");
+  });
+
+  it("rejects a missing session without writing", async () => {
+    const review = await seedReview("in_review");
+    __setSessionIdentityForTests(null);
+    const result = await transitionReview(review.id, "approve");
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toMatch(/sign in/i);
+    expect(await listAuditEvents("org_demo")).toEqual([]);
+  });
+
   it("rejects an unknown action without writing", async () => {
     const review = await seedReview("in_review");
     __setSessionIdentityForTests({ userId: DEMO_ADMIN_ID });
@@ -186,7 +250,10 @@ describe("transitionReview denials", () => {
     const review = await seedReview("in_review");
 
     __setSessionIdentityForTests({ userId: DEMO_REVIEWER_ID });
-    const requested = await transitionReview(review.id, "request_changes");
+    const requested = await transitionReview(review.id, {
+      action: "request_changes",
+      reason: "The founding year still disagrees with the kit.",
+    });
     expect(requested.ok).toBe(true);
 
     __setSessionIdentityForTests({ userId: DEMO_AUTHOR_ID });
