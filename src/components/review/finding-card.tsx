@@ -19,8 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { Finding } from "@/domain/schemas";
-import { DEMO_BRAND_KIT } from "@/data/seed-kit";
+import type { EvidenceSource, Finding } from "@/domain/schemas";
 import { cn } from "@/lib/utils";
 
 const STATUS_LABEL: Record<Finding["status"], string> = {
@@ -50,18 +49,16 @@ function StatusIcon({ status }: { status: Finding["status"] }) {
   }
 }
 
-function sourceTitle(id: string): string {
-  return DEMO_BRAND_KIT.sources.find((s) => s.id === id)?.title ?? id;
-}
-
 export function FindingCard({
   finding,
+  sources,
   originalBody,
   busy,
   onAccept,
   onReject,
 }: {
   finding: Finding;
+  sources: EvidenceSource[];
   originalBody: string;
   busy?: boolean;
   onAccept?: (suggestionId: string) => void;
@@ -71,7 +68,7 @@ export function FindingCard({
   const decided = suggestion?.accepted !== null && suggestion?.accepted !== undefined;
 
   return (
-    <Card className="border-border/80 shadow-none">
+    <Card className="rounded-xl border-border shadow-none">
       <CardHeader className="gap-3 border-b border-border/70 pb-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="flex items-start gap-2">
@@ -122,13 +119,29 @@ export function FindingCard({
             Evidence status
           </p>
           {finding.citationIds.length > 0 ? (
-            <ul className="flex flex-col gap-1 text-sm">
-              {finding.citationIds.map((id) => (
-                <li key={id} className="font-serif text-sm">
-                  <span className="text-brand">Source:</span> {sourceTitle(id)}{" "}
-                  <span className="text-muted-foreground">({id})</span>
-                </li>
-              ))}
+            <ul className="flex flex-col gap-2">
+              {finding.citationIds.map((id) => {
+                const source = sources.find((item) => item.id === id);
+                return (
+                  <li key={id} className="rounded-lg border border-border bg-background p-3">
+                    <p className="text-sm font-medium">
+                      {source?.title ?? "Approved source"}
+                    </p>
+                    {source ? (
+                      <p className="mt-1 font-serif text-sm leading-relaxed text-muted-foreground">
+                        {source.excerpt}
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Source excerpt is unavailable for this pinned kit version.
+                      </p>
+                    )}
+                    <p className="mt-2 font-mono text-[11px] text-muted-foreground">
+                      {id}
+                    </p>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -140,7 +153,7 @@ export function FindingCard({
 
         {suggestion ? (
           <div className="grid gap-3 md:grid-cols-2">
-            <div className="rounded-md border border-border p-3">
+            <div className="rounded-lg border border-border bg-background p-3">
               <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Original
               </p>
@@ -148,7 +161,7 @@ export function FindingCard({
                 {originalBody}
               </p>
             </div>
-            <div className="rounded-md border border-brand/30 bg-brand/5 p-3">
+            <div className="rounded-lg border border-brand/30 bg-brand/5 p-3">
               <p className="mb-2 text-xs font-medium uppercase tracking-wide text-brand">
                 Suggested
               </p>
