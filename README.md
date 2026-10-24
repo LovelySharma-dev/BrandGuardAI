@@ -46,9 +46,9 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Copy `.env.example` to `.env.local`. Do not commit `.env.local`.
 
-**Local development.** Leave `DATABASE_URL` and `DIRECT_URL` unset. Reviews are stored in embedded Postgres under `.data/pglite`. `npm run dev` seeds demo accounts when the user table is empty. The sign-in page shows the demo password only in development.
+**Local development.** Leave `DATABASE_URL` and `DIRECT_URL` unset. Reviews are stored in embedded Postgres under `.data/pglite`. `npm run dev` seeds demo accounts when the user table is empty. The sign-in page lists each demo role and signs that account in. That list is there for judging convenience.
 
-**Hosted database.** Set `DATABASE_URL` to the pooled connection and `DIRECT_URL` to a direct, non-pooler host. Migrations run on startup through the direct connection. If `DIRECT_URL` is missing or points at a pooler, the direct host is derived by removing `-pooler` from `DATABASE_URL`. The current hosted database already contains seeded demo accounts. Treat it as a development database. A public deployment needs a separate empty database. Production startup does not seed an empty database, and the production sign-in page does not show the demo password. Hiding that password does not remove accounts that are already stored.
+**Hosted database.** Set `DATABASE_URL` to the pooled connection and `DIRECT_URL` to a direct, non-pooler host. Migrations run on startup through the direct connection. If `DIRECT_URL` is missing or points at a pooler, the direct host is derived by removing `-pooler` from `DATABASE_URL`. The current hosted database already contains seeded demo accounts. Treat it as a development database. A public deployment needs a separate empty database. Production startup does not seed an empty database. The role buttons on the sign-in page work after those accounts exist. Hiding a password does not remove accounts that are already stored.
 
 **Optional model.** Set `OPENROUTER_API_KEY` and `LLM_MODEL=openrouter/free` (or one id ending in `:free`). A missing key skips the model pass. Malformed JSON is repaired once. A timeout, an empty response, or a second bad response fails that pass. Deterministic findings still return, and the review page says so without the provider error. The model cannot approve a draft.
 

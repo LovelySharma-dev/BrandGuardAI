@@ -17,6 +17,13 @@ import { getCurrentUser } from "@/lib/session";
 
 export const metadata = { title: "Sign in" };
 
+function roleCaption(account: (typeof DEMO_ACCOUNTS)[number]): string {
+  if (account.orgId === "org_other") return "Other organisation";
+  if (account.role === "reviewer") return "Reviewer";
+  if (account.role === "admin") return "Admin";
+  return "Author";
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
@@ -27,7 +34,6 @@ export default async function LoginPage({
   const params = await searchParams;
   const failed = params.error === "credentials";
   const limited = params.error === "rate";
-  const showDemoAccounts = process.env.NODE_ENV !== "production";
 
   return (
     <main className="mx-auto flex min-h-full max-w-lg flex-col justify-center px-4 py-16">
@@ -51,7 +57,35 @@ export default async function LoginPage({
               Too many sign-in attempts. Wait a few minutes and try again.
             </p>
           ) : null}
+          <div className="flex flex-col gap-2">
+            <p id="role-signin-note" className="text-sm text-muted-foreground">
+              For judging convenience, choose a role. Each button signs that
+              demo account in. Sign out to try another role.
+            </p>
+            <ul className="flex flex-col gap-2" aria-describedby="role-signin-note">
+              {DEMO_ACCOUNTS.map((account) => (
+                <li key={account.id}>
+                  <form action={loginAction}>
+                    <input type="hidden" name="email" value={account.email} />
+                    <input type="hidden" name="password" value={DEMO_PASSWORD} />
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      className="h-auto min-h-11 w-full justify-between gap-3 px-3 py-2 text-left whitespace-normal"
+                    >
+                      <span className="flex min-w-0 flex-col items-start">
+                        <span>{account.name}</span>
+                        <span className="text-muted-foreground">{account.email}</span>
+                      </span>
+                      <span className="shrink-0">{roleCaption(account)}</span>
+                    </Button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          </div>
           <form action={loginAction} className="flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground">Or enter an email and password.</p>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="email">Email</Label>
               <Input id="email" name="email" type="email" autoComplete="username" required />
@@ -66,35 +100,8 @@ export default async function LoginPage({
                 required
               />
             </div>
-            <Button type="submit">Sign in</Button>
+            <Button type="submit" className="min-h-11">Sign in</Button>
           </form>
-          {showDemoAccounts ? (
-            <>
-              <p className="text-sm text-muted-foreground">
-                These are demo-only accounts for local evaluation. Do not reuse this
-                password on a public deployment. Demo password:{" "}
-                <span className="font-mono">{DEMO_PASSWORD}</span>
-              </p>
-              <ul className="flex flex-col gap-2">
-                {DEMO_ACCOUNTS.map((account) => (
-                  <li key={account.id}>
-                    <form action={loginAction}>
-                      <input type="hidden" name="email" value={account.email} />
-                      <input type="hidden" name="password" value={DEMO_PASSWORD} />
-                      <Button type="submit" variant="outline" className="w-full justify-between">
-                        <span>{account.name}</span>
-                        <span className="text-muted-foreground">{account.role}</span>
-                      </Button>
-                    </form>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Demo accounts are not shown on a production server.
-            </p>
-          )}
         </CardContent>
       </Card>
     </main>
