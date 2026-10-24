@@ -1,7 +1,6 @@
 import { mkdirSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-import { PGlite } from "@electric-sql/pglite";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 
 import { seedDatabase } from "@/db/seed";
@@ -84,6 +83,7 @@ async function openAppDatabase(): Promise<AppDatabase> {
 }
 
 async function openLocalDatabase(): Promise<AppDatabase> {
+  const { PGlite } = await import("@electric-sql/pglite");
   const dir = path.join(process.cwd(), ".data", "pglite");
   mkdirSync(dir, { recursive: true });
   const db = new PGlite(dir);

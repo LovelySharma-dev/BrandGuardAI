@@ -4,6 +4,7 @@ import { getPublishedBrandKit } from "@/db/brand-kits";
 import { requireUser } from "@/lib/session";
 
 export const metadata = { title: "New review" };
+export const maxDuration = 60;
 
 export default async function NewReviewPage() {
   const user = await requireUser();

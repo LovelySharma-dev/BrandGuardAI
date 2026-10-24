@@ -13,6 +13,7 @@ import { FOUNDING_FACT_ID, getDraftBrandKit, getPublishedBrandKit } from "@/db/b
 import { requireUser } from "@/lib/session";
 
 export const metadata = { title: "Brand Knowledge" };
+export const maxDuration = 60;
 
 export default async function KnowledgePage() {
   const user = await requireUser();

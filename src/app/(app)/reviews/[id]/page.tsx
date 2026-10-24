@@ -10,6 +10,7 @@ import { getSnapshot } from "@/db/repository";
 import { getReviewForCurrentUser } from "@/lib/store";
 
 export const metadata = { title: "Review" };
+export const maxDuration = 60;
 
 export default function ReviewDetailPage({
   params,

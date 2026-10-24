@@ -216,7 +216,8 @@ export async function openRouterComplete(
   }
 
   const started = Date.now();
-  const budgetMs = 60_000;
+  // Two attempts must finish inside a 60s host limit, leaving time to save the review.
+  const budgetMs = 22_000;
   const first = await postCompletion(key, model, messages, true, started, budgetMs);
   return first;
 }
