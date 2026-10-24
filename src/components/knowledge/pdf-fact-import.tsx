@@ -53,8 +53,8 @@ export function PdfFactImport() {
 
   return (
     <div className="flex flex-col gap-3">
-      <form action={onInspect} className="flex flex-wrap items-center gap-3">
-        <label className="text-sm" htmlFor="brand-pdf">
+      <form action={onInspect} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <label className="text-sm font-medium" htmlFor="brand-pdf">
           Brand PDF
         </label>
         <input
@@ -63,9 +63,9 @@ export function PdfFactImport() {
           type="file"
           accept="application/pdf,.pdf"
           required
-          className="text-sm"
+          className="min-h-11 w-full min-w-0 cursor-pointer text-sm text-foreground file:mr-3 file:inline-flex file:h-11 file:cursor-pointer file:items-center file:rounded-lg file:border-0 file:bg-primary file:px-4 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/80 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:w-auto"
         />
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending} className="min-h-11">
           {pending ? "Reading PDF…" : "Read PDF"}
         </Button>
       </form>
