@@ -1,5 +1,7 @@
 import type { PGlite } from "@electric-sql/pglite";
 
+import { insertPublishedBrandKit } from "@/db/brand-kits";
+import { DEMO_BRAND_KIT } from "@/data/seed-kit";
 import { ContentReviewSchema } from "@/domain/schemas";
 import { DEMO_PASSWORD, hashPassword } from "@/lib/password";
 
@@ -56,7 +58,13 @@ export async function seedDatabase(db: PGlite): Promise<void> {
   const existing = await db.query<{ count: number }>(
     "SELECT count(*)::int AS count FROM users",
   );
-  if (Number(existing.rows[0]?.count ?? 0) > 0) return;
+  if (Number(existing.rows[0]?.count ?? 0) === 0) {
+    await seedAccounts(db);
+  }
+  await seedPublishedKits(db);
+}
+
+async function seedAccounts(db: PGlite): Promise<void> {
 
   for (const org of ORGS) {
     await db.query(
@@ -113,4 +121,23 @@ export async function seedDatabase(db: PGlite): Promise<void> {
       review.updatedAt,
     ],
   );
+}
+
+async function seedPublishedKits(db: PGlite): Promise<void> {
+  const publishedAt = "2026-01-01T00:00:00.000Z";
+  for (const orgId of ["org_demo", "org_other"] as const) {
+    const existing = await db.query<{ id: string }>(
+      "SELECT id FROM brand_kits WHERE org_id = $1 AND version = '1.0.0'",
+      [orgId],
+    );
+    if (existing.rows.length > 0) continue;
+    await insertPublishedBrandKit(db,
+      {
+        ...structuredClone(DEMO_BRAND_KIT),
+        id: orgId === "org_demo" ? DEMO_BRAND_KIT.id : `kit_${orgId}`,
+        orgId,
+      },
+      publishedAt,
+    );
+  }
 }

@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { PGlite } from "@electric-sql/pglite";
@@ -10,7 +10,6 @@ import { seedDatabase } from "@/db/seed";
  * local connections require a password that is not stored in this repo.
  * The SQL in src/db/migrations is ordinary Postgres.
  */
-const MIGRATION_ID = "001_init";
 
 let database: Promise<PGlite> | null = null;
 
@@ -43,19 +42,19 @@ export async function migrateAndSeed(db: PGlite): Promise<void> {
       applied_at timestamptz NOT NULL DEFAULT now()
     );
   `);
-  const applied = await db.query<{ id: string }>(
-    "SELECT id FROM schema_migrations WHERE id = $1",
-    [MIGRATION_ID],
-  );
-  if (applied.rows.length === 0) {
-    const sql = readFileSync(
-      path.join(process.cwd(), "src/db/migrations/001_init.sql"),
-      "utf8",
+  const dir = path.join(process.cwd(), "src/db/migrations");
+  const files = readdirSync(dir)
+    .filter((name) => name.endsWith(".sql"))
+    .sort();
+  for (const file of files) {
+    const id = file.slice(0, -".sql".length);
+    const applied = await db.query<{ id: string }>(
+      "SELECT id FROM schema_migrations WHERE id = $1",
+      [id],
     );
-    await db.exec(sql);
-    await db.query("INSERT INTO schema_migrations (id) VALUES ($1)", [
-      MIGRATION_ID,
-    ]);
+    if (applied.rows.length > 0) continue;
+    await db.exec(readFileSync(path.join(dir, file), "utf8"));
+    await db.query("INSERT INTO schema_migrations (id) VALUES ($1)", [id]);
   }
   await seedDatabase(db);
 }

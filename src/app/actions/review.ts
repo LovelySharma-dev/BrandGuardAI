@@ -1,6 +1,6 @@
 "use server";
 
-import { DEMO_BRAND_KIT } from "@/data/seed-kit";
+import { getPublishedBrandKit } from "@/db/brand-kits";
 import type { ContentReview, ReviewInput } from "@/domain/schemas";
 import { ReviewInputSchema } from "@/domain/schemas";
 import {
@@ -20,8 +20,14 @@ export async function submitReviewAction(
 ): Promise<ActionResult<ContentReview>> {
   const user = await requireUser();
   const parsed = ReviewInputSchema.parse(input);
-  const scoped = { ...parsed, orgId: user.orgId };
-  const result = runDeterministicReview(scoped, DEMO_BRAND_KIT);
+  const kit = await getPublishedBrandKit(user.orgId);
+  if (!kit) {
+    return { ok: false, error: "No published brand kit for this organisation" };
+  }
+  const result = runDeterministicReview(
+    { ...parsed, orgId: user.orgId },
+    kit,
+  );
   if (!result.ok) {
     if (result.review) {
       await saveReview({ ...result.review, orgId: user.orgId });

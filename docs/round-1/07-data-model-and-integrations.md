@@ -85,6 +85,6 @@ type Finding = {
 
 ## Migration / versioning approach
 
-- Brand kit versions are immutable once published; edits create `kit_version+1`.
-- Reviews pin `kit_version_id` so audits remain reproducible.
+- Brand kit versions are immutable once published; edits create `kit_version+1`. Implemented as a new draft row at the next patch version. The published row is not updated.
+- Reviews pin `kit_version` to the published version used for that run, so a later draft edit does not change the pin.
 - Model output schema versioned (`finding_schema_v1`); adapter normalises provider quirks at the boundary.

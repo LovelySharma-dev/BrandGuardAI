@@ -44,6 +44,8 @@
 
 `request_changes` stores `needs_revision`, the status name already used by the review engine. `changes_requested`, `archived`, and `superseded` are not separate stored statuses in this slice.
 
+Published brand kits are immutable. An admin edit writes the next patch version as a draft (`1.0.0` → `1.0.1`). A review stores the published version it ran against, so a later draft edit still leaves that review on `1.0.0`.
+
 ## Review engine internal workflow
 
 1. **Normalise input** — charset, truncated length limits, content type.
