@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/readme/banner.svg" alt="BrandGuard AI animated banner" width="100%">
+</p>
+
 # BrandGuard AI
 
 Evidence-gated pre-publication brand governance. A review holds a draft against a published brand kit. Findings cite approved sources from that retrieval, or they name the evidence gap. A person accepts suggestions and approves the draft. Review output never sets a draft to `approved`.
@@ -5,6 +9,8 @@ Evidence-gated pre-publication brand governance. A review holds a draft against 
 **Provisional name:** Round 1 research notes identify a public commercial page using this name. Confirm naming and clearance before public use.
 
 The pictures below are the running app. Seeded Inkloom facts are demo data. On the saved reviews in these shots, the optional model pass did not return usable JSON, so the findings on screen are the deterministic ones. The public landing demo does not call a model, does not save a review, and does not approve the draft.
+
+<img src="docs/readme/divider.svg" width="100%" alt="">
 
 ## See the process
 
@@ -16,11 +22,15 @@ The workspace, from sign-in through a human approval. Each frame is a screen fro
 
 ![Walkthrough: sign in, run a review, read evidence, accept a suggestion, then a reviewer approves](docs/readme/walkthrough.gif)
 
+<img src="docs/readme/divider.svg" width="100%" alt="">
+
 ## 1. Public home
 
 `/` walks through the fictional Northline kit: a terminology mismatch, an unsupported claim, a contradicted launch year, and a sentence the fictional note supports. That screen is an illustration. It is not a stored review. Signed-in visitors can open the workspace. Signed-out visitors sign in from the same page.
 
 ![Public home with the Northline draft highlighted and marked draft not approved](docs/readme/home.png)
+
+<img src="docs/readme/divider.svg" width="100%" alt="">
 
 ## 2. Try the evidence gate
 
@@ -32,11 +42,15 @@ The same page states what the product does in four steps. Terminology, promotion
 
 ![Four steps on the home page: connect guidelines, review content, inspect evidence, and decide](docs/readme/how-it-works.png)
 
+<img src="docs/readme/divider.svg" width="100%" alt="">
+
 ## 3. Sign in
 
 Roles are stored with the user. Every later approval reads that role from the session, and every review query is limited to the user’s organisation. The sign-in page lists each demo role so a judge can enter quickly. That list is a judging convenience.
 
 ![Sign-in page with demo author, reviewer, admin, and other-organisation accounts](docs/readme/sign-in.png)
+
+<img src="docs/readme/divider.svg" width="100%" alt="">
 
 ## 4. Write a draft
 
@@ -50,6 +64,8 @@ The mixed draft used for the findings below is:
 Inkloom was founded in 2019. Later copy says founded in 2015. We are the best in the world.
 ```
 
+<img src="docs/readme/divider.svg" width="100%" alt="">
+
 ## 5. Read the findings
 
 The review pins brand kit `1.0.0`. This run returned three deterministic findings:
@@ -62,11 +78,15 @@ The review is `needs revision` because of the blocker. A markdown report downloa
 
 ![Saved review in needs revision, with verified, contradicted, and unsupported findings](docs/readme/findings.png)
 
+<img src="docs/readme/divider.svg" width="100%" alt="">
+
 ## 6. Inspect evidence trust
 
 Evidence trust draws the selected finding as a relationship: the draft claim, the automated finding, and either a pinned source or an evidence gap. The same relationships are listed under the diagram as a text version. A source appears only when its id is in that review’s retrieval snapshot and the stored excerpt’s kit version is the review’s pinned version. The human decision is a separate block. On this review, none has been recorded. The diagram does not create citations, change a finding status, or approve the draft.
 
 ![Evidence trust for the 2015 claim, citing the pinned founding fact and recording no human decision](docs/readme/evidence-trust.png)
+
+<img src="docs/readme/divider.svg" width="100%" alt="">
 
 ## 7. Accept a suggestion
 
@@ -74,11 +94,15 @@ Suggested edits are accepted or rejected by a person. Accepting the unsupported 
 
 ![Unsupported finding after the correction was accepted, with the original and suggested wording](docs/readme/suggestion-accepted.png)
 
+<img src="docs/readme/divider.svg" width="100%" alt="">
+
 ## 8. A clean draft can be decided
 
 A second draft, `Inkloom was founded in 2019.`, has no blocker. It stays `in review`, kit `1.0.0`, with one verified finding and the pinned founding excerpt. The model pass failed on this run as well. The verified finding is the deterministic one.
 
 ![Founding year check in review, with one verified finding and no human decision yet](docs/readme/clean-review.png)
+
+<img src="docs/readme/divider.svg" width="100%" alt="">
 
 ## 9. An author cannot approve
 
@@ -90,17 +114,23 @@ This development database also holds earlier demo drafts. Those rows are hidden 
 
 Request changes and reject require a short reason. The person who created a review cannot approve it, including a reviewer or admin who created it. A second concurrent decision does not write a second audit row. Audit events are append-only.
 
+<img src="docs/readme/divider.svg" width="100%" alt="">
+
 ## 10. A reviewer approves
 
 Signed in as the demo reviewer, **Approve** on that same draft stores the decision. The review is `approved · last decision approve`. The finding stays `verified`. The kit pin stays `1.0.0`. Evidence trust records the human decision separately from the automated finding.
 
 ![Founding year check after the reviewer approved it, still citing kit 1.0.0](docs/readme/approved.png)
 
+<img src="docs/readme/divider.svg" width="100%" alt="">
+
 ## 11. Publish the brand kit
 
 An admin edits facts, term rules, and claim policies on a draft kit, then publishes the next version. Published versions stay pinned to the reviews that used them. A brand PDF can be read into candidate statements on the draft (a real `.pdf`, at most 2 MB). Those sentences are not approved until the kit is published. In this workspace, draft `1.0.1` is waiting and reviews still use published `1.0.0`.
 
 ![Brand knowledge with the published founding fact and a draft kit waiting to publish](docs/readme/knowledge.png)
+
+<img src="docs/readme/divider.svg" width="100%" alt="">
 
 ## 12. Analytics and settings
 
@@ -111,6 +141,8 @@ Governance analytics counts findings on stored reviews and scores the labelled f
 Settings shows the organisation, role, whether a free model id is configured, whether an OpenRouter key is present, and whether persistence is hosted Postgres or local Postgres. It does not show the key or the connection string.
 
 ![Settings for the demo admin, with the evidence gate fail closed and a free model id](docs/readme/settings.png)
+
+<img src="docs/readme/divider.svg" width="100%" alt="">
 
 ## How a review runs
 
@@ -126,6 +158,8 @@ Login, review submission, and PDF inspection are limited per database: 30 sign-i
 A paid model id, or a fallback list that includes one, is refused and the model pass is not called. A missing key, a timeout, or malformed model JSON skips or fails that pass. Deterministic findings still return.
 
 Accepting a suggestion updates the draft and leaves the review status unchanged. A demo script with accounts and expected results is in `DEMO.md`.
+
+<img src="docs/readme/divider.svg" width="100%" alt="">
 
 ## Local run
 
@@ -165,6 +199,8 @@ All seeded accounts use the password `brandguard-demo`:
 
 An additional author account belongs to a separate seeded organisation for isolation checks: `author@other.brandguard.test`.
 
+<img src="docs/readme/divider.svg" width="100%" alt="">
+
 ## Scripts
 
 | Command | Purpose |
@@ -177,9 +213,13 @@ An additional author account belongs to a separate seeded organisation for isola
 | `npm run typecheck` | TypeScript check |
 | `npm run lint` | ESLint |
 
+<img src="docs/readme/divider.svg" width="100%" alt="">
+
 ## Design system
 
 Tokens live in `src/app/globals.css`: warm stone canvas, ink type, and a bronze accent. Persisted design research is under `design-system/brandguard-ai/`. The workspace is an information-dense review surface. The home page uses the same tokens.
+
+<img src="docs/readme/divider.svg" width="100%" alt="">
 
 ## Further reading
 
