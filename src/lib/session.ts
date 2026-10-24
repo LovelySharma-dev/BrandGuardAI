@@ -34,8 +34,14 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   if (!identity) return null;
   const user = await getUserById(identity.userId);
   if (!user) return null;
-  const { passwordHash: _password, ...sessionUser } = user;
-  return sessionUser;
+  return {
+    id: user.id,
+    orgId: user.orgId,
+    orgName: user.orgName,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+  };
 }
 
 export async function requireUser(): Promise<SessionUser> {

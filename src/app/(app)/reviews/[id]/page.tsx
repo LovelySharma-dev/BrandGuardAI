@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { ReviewWorkspace } from "@/components/review/review-workspace";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getReviewForCurrentUser } from "@/lib/store";
+import { getBrandKitVersion } from "@/db/brand-kits";
 
 export const metadata = { title: "Review" };
 
@@ -35,6 +36,7 @@ async function ReviewDetail({
   const { id } = await params;
   const review = await getReviewForCurrentUser(id);
   if (!review) notFound();
+  const kit = await getBrandKitVersion(review.orgId, review.kitVersion);
 
   return (
     <AppShell
@@ -49,7 +51,7 @@ async function ReviewDetail({
         </Link>
       }
     >
-      <ReviewWorkspace initialReview={review} />
+      <ReviewWorkspace initialReview={review} sources={kit?.sources ?? []} />
     </AppShell>
   );
 }

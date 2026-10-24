@@ -1,21 +1,23 @@
 # BrandGuard AI
 
-Evidence-gated pre-publication brand governance. Findings cite approved sources or explicitly declare evidence gaps. Models never approve content.
+Evidence-gated pre-publication brand governance. Findings cite approved sources or explicitly declare evidence gaps. Suggestions require a human decision; review results never approve content.
 
-**Provisional name** — Round 1 research notes cite a public commercial page using this name; confirm naming and clearance before public use. No category-uniqueness claim is made.
+**Provisional name:** Round 1 research notes identify a public commercial page using this name. Confirm naming and clearance before public use.
 
-## Current status (prototype; phase completion and build-window timing unverified)
+## Current prototype
 
-The working tree contains a navigable prototype. Its presence does not establish when it was built or whether that work falls within an official build window.
+The local app includes:
 
-- **Implemented:** Next.js App Router, TypeScript, Tailwind CSS, and the review/application screens.
-- **Implemented:** deterministic checks against a seeded demo kit for selected terminology, promotional-claim patterns, and factual phrases.
-- **Implemented:** a source-ID snapshot and evidence gate that removes citations outside that snapshot; this is not a retrieval system.
-- **Implemented:** correction accept/reject decisions and revisions in process memory.
-- **In progress:** review, knowledge, approval-queue, analytics, and settings surfaces. The brand kit and approval queue are read-only; analytics show only current-process counts.
-- **Planned:** live retrieval and an LLM adapter, durable database storage, authentication and organisation-scoped authorization, server-enforced approval transitions, and persistent audit history.
+- Sign-in with demo author, reviewer, and admin roles.
+- Organisation-scoped reviews, saved to a local PGlite database in `.data/pglite`.
+- Deterministic terminology and claim checks, approved fact matching, and an evidence gate against each review's pinned brand-kit snapshot.
+- Finding cards with the pinned source excerpt or an explicit evidence gap.
+- Suggested text changes that authors must accept or reject.
+- A reviewer approval queue with server-side role checks and audit events.
+- Admin editing of the founding statement as a draft, followed by publishing an immutable kit version.
+- A labelled fixture evaluation runner. Its results are not a general accuracy or precision claim.
 
-The demo kit is illustrative seed data, not verified information about a real organisation. The approval queue does not approve or reject content, and the prototype does not authenticate users.
+The review engine is deterministic: there is no LLM adapter or live search/retrieval query. The snapshot currently includes the approved source IDs in the selected kit. PGlite runs locally and is not a hosted production database. Seeded company facts are illustrative demo data, not verified information about a real organisation.
 
 ## Local run
 
@@ -24,31 +26,38 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) (redirects to `/dashboard`).
+Open [http://localhost:3000](http://localhost:3000). The app redirects signed-out visitors to `/login`.
 
-### Scripts
+All seeded accounts use the password `brandguard-demo`:
+
+| Role | Email |
+| --- | --- |
+| Author | `author@demo.brandguard.test` |
+| Reviewer | `reviewer@demo.brandguard.test` |
+| Admin | `admin@demo.brandguard.test` |
+
+An additional author account belongs to a separate seeded organisation for isolation checks: `author@other.brandguard.test`.
+
+## Scripts
 
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Development server |
 | `npm run build` | Production build |
 | `npm run start` | Serve production build |
-| `npm run test` | Vitest unit tests |
+| `npm run test` | Unit and integration tests |
+| `npm run eval` | Labelled fixture evaluation checks |
 | `npm run typecheck` | TypeScript check |
 | `npm run lint` | ESLint |
 
-## Architecture notes
-
-See `AGENTS.md`, `docs/round-1/06-architecture.md`, and `SKILLS.md`.
-
-Current prototype behavior and boundaries:
-
-1. **Deterministic validators only** — no LLM adapter or retrieval query is wired.
-2. **Evidence gate** — citation IDs must be ⊆ the source IDs in the constructed snapshot.
-3. Statuses include `verified`, `contradicted`, `unsupported`, `indeterminate`, and `policy_hit`.
-4. Promotional-pattern hits are not labelled `verified`; missing evidence is not treated as contradiction.
-5. Reviews and audit events are held in process memory; authentication, durable storage, and permissioned approvals are not implemented.
-
 ## Design system
 
-Tokens live in `src/app/globals.css`. Persisted design research is under `design-system/brandguard-ai/` with intentional overrides away from liquid-glass defaults toward a warm-neutral enterprise shell.
+Tokens live in `src/app/globals.css`. Persisted design research is under `design-system/brandguard-ai/`; the app uses a warm-neutral, information-dense review workspace.
+
+## Further reading
+
+- `AGENTS.md` — architecture and security constraints
+- `docs/round-1/06-architecture.md` — planned architecture and boundaries
+- `docs/round-1/07-data-model-and-integrations.md` — data model and integration plan
+- `docs/round-1/09-milestones.md` — milestone acceptance criteria
+- `SKILLS.md` — reusable engineering workflows

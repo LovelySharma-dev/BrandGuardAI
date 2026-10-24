@@ -30,7 +30,11 @@ export const metadata: Metadata = {
     "Evidence-gated pre-publication brand governance. Findings cite approved sources or declare evidence gaps.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
